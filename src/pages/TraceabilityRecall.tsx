@@ -93,10 +93,20 @@ const TraceabilityRecall = () => {
     fetchData();
   };
 
-  const filteredLots = lots.filter(l =>
-    l.lot_number?.toLowerCase().includes(search.toLowerCase()) ||
-    l.product_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const lotFilters = [
+    { key: "status", label: "Status", options: [
+      { value: "active", label: "Active" },
+      { value: "quarantined", label: "Quarantined" },
+      { value: "recalled", label: "Recalled" },
+      { value: "released", label: "Released" },
+    ]},
+  ];
+
+  const filteredLots = lots.filter(l => {
+    if (search && !l.lot_number?.toLowerCase().includes(search.toLowerCase()) && !l.product_name?.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterValues.status && filterValues.status !== "all" && l.status !== filterValues.status) return false;
+    return true;
+  });
 
   // Genealogy: find linked lots
   const [genealogyLot, setGenealogyLot] = useState("");
