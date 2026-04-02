@@ -2,9 +2,19 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/SeverityBadge";
-import { AlertTriangle, MessageSquareWarning, Truck, Plus, ClipboardList } from "lucide-react";
+import { AlertTriangle, MessageSquareWarning, Truck, Plus, ClipboardList, Calendar, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Cell,
+} from "recharts";
+import { formatDistanceToNow } from "date-fns";
+
+const PARETO_COLORS = [
+  "hsl(0 84% 60%)", "hsl(25 95% 53%)", "hsl(48 96% 53%)",
+  "hsl(210 100% 56%)", "hsl(142 71% 45%)", "hsl(280 67% 60%)",
+  "hsl(215 12% 50%)", "hsl(340 75% 55%)", "hsl(170 70% 40%)",
+];
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -13,36 +23,54 @@ const Dashboard = () => {
   const [supplierCount, setSupplierCount] = useState(0);
   const [recentCapas, setRecentCapas] = useState<any[]>([]);
   const [complaintTrend, setComplaintTrend] = useState<any[]>([]);
+  const [complaintByType, setComplaintByType] = useState<any[]>([]);
+  const [overdueCapas, setOverdueCapas] = useState(0);
+  const [avgDaysOpen, setAvgDaysOpen] = useState(0);
+  const [suppliersByStatus, setSuppliersByStatus] = useState<Record<string, number>>({});
+  const [cpmuByProduct, setCpmuByProduct] = useState<any[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
+    // Open CAPAs by severity
     const { data: capas } = await supabase
       .from("capas")
-      .select("severity, status")
+      .select("severity, status, created_at, sla_deadline")
       .neq("status", "closure");
 
     if (capas) {
       const summary = { critical: 0, high: 0, medium: 0, low: 0, total: capas.length };
+      let totalDays = 0;
+      let overdue = 0;
       capas.forEach((c) => {
         if (c.severity in summary) summary[c.severity as keyof typeof summary]++;
+        totalDays += (Date.now() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24);
+        if (c.sla_deadline && new Date(c.sla_deadline) < new Date()) overdue++;
       });
       setCapaSummary(summary);
+      setAvgDaysOpen(capas.length > 0 ? Math.round(totalDays / capas.length) : 0);
+      setOverdueCapas(overdue);
     }
 
+    // Active complaints
     const { count } = await supabase
       .from("complaints")
       .select("*", { count: "exact", head: true })
       .in("status", ["logged", "investigating"]);
     setComplaintCount(count ?? 0);
 
-    const { count: sCount } = await supabase
-      .from("suppliers")
-      .select("*", { count: "exact", head: true });
-    setSupplierCount(sCount ?? 0);
+    // Supplier count + by status
+    const { data: suppliers } = await supabase.from("suppliers").select("status");
+    setSupplierCount(suppliers?.length ?? 0);
+    if (suppliers) {
+      const byStatus: Record<string, number> = {};
+      suppliers.forEach((s) => { byStatus[s.status] = (byStatus[s.status] || 0) + 1; });
+      setSuppliersByStatus(byStatus);
+    }
 
+    // Recent CAPAs
     const { data: recent } = await supabase
       .from("capas")
       .select("*")
@@ -50,19 +78,41 @@ const Dashboard = () => {
       .limit(5);
     setRecentCapas(recent ?? []);
 
+    // Complaint trend (30 days)
     const { data: complaints } = await supabase
       .from("complaints")
-      .select("created_at")
+      .select("created_at, complaint_type, product")
       .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
       .order("created_at", { ascending: true });
 
     if (complaints) {
+      // Trend by day
       const byDay: Record<string, number> = {};
       complaints.forEach((c) => {
         const day = new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
         byDay[day] = (byDay[day] || 0) + 1;
       });
       setComplaintTrend(Object.entries(byDay).map(([date, count]) => ({ date, count })));
+
+      // By type (Pareto)
+      const byType: Record<string, number> = {};
+      complaints.forEach((c) => { byType[c.complaint_type] = (byType[c.complaint_type] || 0) + 1; });
+      const sorted = Object.entries(byType)
+        .map(([type, count]) => ({
+          type: type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+          count,
+        }))
+        .sort((a, b) => b.count - a.count);
+      setComplaintByType(sorted);
+
+      // CPMU by product
+      const byProduct: Record<string, number> = {};
+      complaints.forEach((c) => { byProduct[c.product] = (byProduct[c.product] || 0) + 1; });
+      const cpmu = Object.entries(byProduct)
+        .map(([product, count]) => ({ product, complaints: count, cpmu: count }))
+        .sort((a, b) => b.complaints - a.complaints)
+        .slice(0, 8);
+      setCpmuByProduct(cpmu);
     }
   };
 
@@ -85,7 +135,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Row 1 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="data-card cursor-pointer" onClick={() => navigate("/capa")}>
           <div className="flex items-center justify-between mb-3">
@@ -93,7 +143,7 @@ const Dashboard = () => {
             <AlertTriangle className="h-4 w-4 text-severity-high" />
           </div>
           <div className="metric-value">{capaSummary.total}</div>
-          <div className="mt-3 flex gap-1">
+          <div className="mt-3 flex gap-1 flex-wrap">
             {capaSummary.critical > 0 && <SeverityBadge severity="critical" />}
             {capaSummary.high > 0 && <SeverityBadge severity="high" />}
             {capaSummary.medium > 0 && <SeverityBadge severity="medium" />}
@@ -110,13 +160,38 @@ const Dashboard = () => {
           <p className="text-xs text-muted-foreground mt-1">Logged + Investigating</p>
         </div>
 
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">Overdue CAPAs</span>
+            <Calendar className="h-4 w-4 text-severity-critical" />
+          </div>
+          <div className="metric-value text-severity-critical">{overdueCapas}</div>
+          <p className="text-xs text-muted-foreground mt-1">Past SLA deadline</p>
+        </div>
+
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">Avg Days Open</span>
+            <TrendingUp className="h-4 w-4 text-primary" />
+          </div>
+          <div className="metric-value">{avgDaysOpen}</div>
+          <p className="text-xs text-muted-foreground mt-1">Active CAPAs average age</p>
+        </div>
+      </div>
+
+      {/* KPI Row 2 */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="data-card cursor-pointer" onClick={() => navigate("/suppliers")}>
           <div className="flex items-center justify-between mb-3">
             <span className="metric-label">Suppliers</span>
             <Truck className="h-4 w-4 text-primary" />
           </div>
           <div className="metric-value">{supplierCount}</div>
-          <p className="text-xs text-muted-foreground mt-1">Total registered</p>
+          <div className="mt-2 flex gap-2 text-xs">
+            {suppliersByStatus.approved && <span className="text-status-closed">{suppliersByStatus.approved} approved</span>}
+            {suppliersByStatus.conditional && <span className="text-severity-medium">{suppliersByStatus.conditional} conditional</span>}
+            {suppliersByStatus.suspended && <span className="text-severity-high">{suppliersByStatus.suspended} suspended</span>}
+          </div>
         </div>
 
         <div className="data-card">
@@ -131,9 +206,37 @@ const Dashboard = () => {
             <div className="flex justify-between"><span>Low</span><span className="font-mono font-bold text-severity-low">{capaSummary.low}</span></div>
           </div>
         </div>
+
+        {/* CPMU by Product mini-table */}
+        <div className="data-card lg:col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">CPMU by Product (30d)</span>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </div>
+          {cpmuByProduct.length > 0 ? (
+            <div className="space-y-1.5 text-sm max-h-[120px] overflow-y-auto scrollbar-thin">
+              {cpmuByProduct.map((p) => (
+                <div key={p.product} className="flex justify-between items-center">
+                  <span className="truncate max-w-[200px]">{p.product}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full"
+                        style={{ width: `${Math.min(100, (p.complaints / (cpmuByProduct[0]?.complaints || 1)) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="font-mono font-bold w-8 text-right">{p.complaints}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">No data yet</p>
+          )}
+        </div>
       </div>
 
-      {/* Charts & Recent */}
+      {/* Charts */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="data-card">
           <h3 className="metric-label mb-4">Complaint Trend (30 Days)</h3>
@@ -162,29 +265,66 @@ const Dashboard = () => {
         </div>
 
         <div className="data-card">
-          <h3 className="metric-label mb-4">Recent CAPAs</h3>
-          {recentCapas.length > 0 ? (
-            <div className="space-y-3">
-              {recentCapas.map((capa) => (
-                <div
-                  key={capa.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 cursor-pointer hover:border-primary/30 transition-colors"
-                  onClick={() => navigate(`/capa/${capa.id}`)}
-                >
-                  <div>
-                    <p className="font-mono font-medium text-sm">{capa.capa_number}</p>
-                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">{capa.title}</p>
-                  </div>
-                  <SeverityBadge severity={capa.severity} />
-                </div>
-              ))}
-            </div>
+          <h3 className="metric-label mb-4">Complaint Type Pareto</h3>
+          {complaintByType.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={complaintByType}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
+                <XAxis dataKey="type" tick={{ fill: "hsl(215 12% 50%)", fontSize: 10 }} angle={-30} textAnchor="end" height={60} />
+                <YAxis tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(220 18% 12%)",
+                    border: "1px solid hsl(220 14% 18%)",
+                    borderRadius: "8px",
+                    color: "hsl(210 20% 90%)",
+                  }}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {complaintByType.map((_, i) => (
+                    <Cell key={i} fill={PARETO_COLORS[i % PARETO_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           ) : (
             <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
-              No CAPAs created yet
+              No complaint data yet
             </div>
           )}
         </div>
+      </div>
+
+      {/* Recent CAPAs */}
+      <div className="data-card">
+        <h3 className="metric-label mb-4">Recent CAPAs</h3>
+        {recentCapas.length > 0 ? (
+          <div className="space-y-3">
+            {recentCapas.map((capa) => (
+              <div
+                key={capa.id}
+                className="flex items-center justify-between rounded-lg border border-border p-3 cursor-pointer hover:border-primary/30 transition-colors"
+                onClick={() => navigate(`/capa/${capa.id}`)}
+              >
+                <div className="flex items-center gap-4">
+                  <p className="font-mono font-medium text-sm">{capa.capa_number}</p>
+                  <p className="text-sm text-muted-foreground truncate max-w-[300px]">{capa.title}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {capa.sla_deadline && new Date(capa.sla_deadline) < new Date() && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-severity-critical">Overdue</span>
+                  )}
+                  <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(capa.created_at))} ago</span>
+                  <SeverityBadge severity={capa.severity} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex h-[100px] items-center justify-center text-muted-foreground text-sm">
+            No CAPAs created yet
+          </div>
+        )}
       </div>
     </div>
   );
