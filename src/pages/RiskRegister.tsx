@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { TableFilters } from "@/components/TableFilters";
 
 const RISK_COLORS = (score: number) => {
   if (score >= 15) return "bg-severity-critical/20 text-severity-critical font-bold";
