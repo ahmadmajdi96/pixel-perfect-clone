@@ -171,7 +171,7 @@ const EnvironmentalMonitoring = () => {
                     <TableCell><Badge variant="outline">{z.zone_type.replace("_", " ").toUpperCase()}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{z.area_description || "—"}</TableCell>
                     <TableCell><SeverityBadge severity={z.risk_level} /></TableCell>
-                    <TableCell><StatusBadge status={z.status} /></TableCell>
+                    <TableCell><Badge variant={z.status === "active" ? "default" : "secondary"}>{z.status}</Badge></TableCell>
                   </TableRow>
                 ))}
                 {zones.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No zones defined</TableCell></TableRow>}
