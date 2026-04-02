@@ -198,7 +198,7 @@ const EnvironmentalMonitoring = () => {
                 <TableHead>Area</TableHead><TableHead>Risk</TableHead><TableHead>Status</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {zones.map(z => (
+                {filteredZones.map(z => (
                   <TableRow key={z.id}>
                     <TableCell className="font-mono">{z.zone_number}</TableCell>
                     <TableCell className="font-medium">{z.zone_name}</TableCell>
@@ -208,7 +208,7 @@ const EnvironmentalMonitoring = () => {
                     <TableCell><Badge variant={z.status === "active" ? "default" : "secondary"}>{z.status}</Badge></TableCell>
                   </TableRow>
                 ))}
-                {zones.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No zones defined</TableCell></TableRow>}
+                {filteredZones.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No zones found</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>
