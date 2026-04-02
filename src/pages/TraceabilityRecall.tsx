@@ -175,7 +175,7 @@ const TraceabilityRecall = () => {
               </DialogContent>
             </Dialog>
           </div>
-          <div className="rounded-md border">
+          <div className="data-card overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
