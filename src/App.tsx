@@ -29,6 +29,7 @@ import AllergenControl from "./pages/AllergenControl";
 import TraceabilityRecall from "./pages/TraceabilityRecall";
 import ReportsHub from "./pages/ReportsHub";
 import Administration from "./pages/Administration";
+import EnvironmentalMonitoring from "./pages/EnvironmentalMonitoring";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
