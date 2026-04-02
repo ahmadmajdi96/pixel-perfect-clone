@@ -36,6 +36,7 @@ const TraceabilityRecall = () => {
   const [lotDialogOpen, setLotDialogOpen] = useState(false);
   const [recallDialogOpen, setRecallDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const [lotForm, setLotForm] = useState({ lot_number: "", product_name: "", product_code: "", input_lots: "", output_lots: "", quantity: "", quantity_unit: "kg", notes: "" });
   const [recallForm, setRecallForm] = useState({ title: "", exercise_type: "mock", trigger_reason: "", affected_lots: "", scope_description: "" });
 
