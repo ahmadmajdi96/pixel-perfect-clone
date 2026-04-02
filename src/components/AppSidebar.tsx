@@ -4,6 +4,15 @@ import {
   Truck,
   MessageSquareWarning,
   Shield,
+  ShieldAlert,
+  ClipboardCheck,
+  GitPullRequest,
+  FileText,
+  Wrench,
+  GraduationCap,
+  TriangleAlert,
+  ClipboardList,
+  PackageSearch,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -18,16 +27,54 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const navItems = [
+const coreNav = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "CAPA", url: "/capa", icon: AlertTriangle },
-  { title: "Suppliers", url: "/suppliers", icon: Truck },
   { title: "Complaints", url: "/complaints", icon: MessageSquareWarning },
+  { title: "Deviations", url: "/deviations", icon: TriangleAlert },
+];
+
+const qualityNav = [
+  { title: "HACCP", url: "/haccp", icon: ShieldAlert },
+  { title: "Inspections", url: "/incoming-inspection", icon: ClipboardCheck },
+  { title: "Suppliers", url: "/suppliers", icon: Truck },
+  { title: "Audits", url: "/audits", icon: ClipboardList },
+];
+
+const systemNav = [
+  { title: "Change Control", url: "/change-control", icon: GitPullRequest },
+  { title: "Documents", url: "/documents", icon: FileText },
+  { title: "Calibration", url: "/calibration", icon: Wrench },
+  { title: "Training", url: "/training", icon: GraduationCap },
+  { title: "Risk Register", url: "/risk", icon: PackageSearch },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+
+  const renderNavGroup = (label: string, items: typeof coreNav) => (
+    <>
+      {!collapsed && <p className="metric-label px-3 pb-1 pt-3">{label}</p>}
+      <SidebarMenu>
+        {items.map((item) => (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton asChild>
+              <NavLink
+                to={item.url}
+                end={item.url === "/dashboard"}
+                className="hover:bg-sidebar-accent"
+                activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                {!collapsed && <span>{item.title}</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </SidebarMenu>
+    </>
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -47,26 +94,9 @@ export function AppSidebar() {
             </div>
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            {!collapsed && (
-              <p className="metric-label px-3 pb-2">Navigation</p>
-            )}
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/dashboard"}
-                      className="hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            {renderNavGroup("Core", coreNav)}
+            {renderNavGroup("Quality", qualityNav)}
+            {renderNavGroup("System", systemNav)}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
