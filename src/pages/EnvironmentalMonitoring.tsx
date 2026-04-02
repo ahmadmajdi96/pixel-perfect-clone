@@ -52,6 +52,8 @@ const EnvironmentalMonitoring = () => {
   const [showPointDialog, setShowPointDialog] = useState(false);
   const [showResultDialog, setShowResultDialog] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
   const [zoneForm, setZoneForm] = useState({ zone_name: "", zone_number: "", zone_type: "zone_1", area_description: "", risk_level: "medium" });
   const [pointForm, setPointForm] = useState({ zone_id: "", point_code: "", location_description: "", surface_type: "", test_type: "swab", frequency: "weekly" });
