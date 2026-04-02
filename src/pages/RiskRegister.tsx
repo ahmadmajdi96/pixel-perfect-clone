@@ -183,7 +183,7 @@ const RiskRegister = () => {
               });
               return filteredRisks.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No risks registered</TableCell></TableRow>
-            ) : risks.map((r) => (
+            ) : filteredRisks.map((r) => (
               <TableRow key={r.id}>
                 <TableCell><span className="text-xs font-semibold uppercase">{r.category}</span></TableCell>
                 <TableCell className="max-w-[250px] truncate">{r.description}</TableCell>
