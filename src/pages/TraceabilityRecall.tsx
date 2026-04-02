@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, GitBranch, Timer } from "lucide-react";
+import { Plus, GitBranch, Timer } from "lucide-react";
+import { TableFilters } from "@/components/TableFilters";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
