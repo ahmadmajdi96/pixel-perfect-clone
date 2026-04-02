@@ -9,8 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, ShieldCheck, AlertTriangle, Search } from "lucide-react";
+import { Plus, ShieldCheck, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { TableFilters } from "@/components/TableFilters";
 
 const COMMON_ALLERGENS = [
   "Milk", "Eggs", "Fish", "Crustacean Shellfish", "Tree Nuts", "Peanuts",
@@ -36,6 +37,7 @@ const AllergenControl = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     product_name: "", product_code: "",
     contains: [] as string[], may_contain: [] as string[], free_from: [] as string[],
@@ -82,10 +84,19 @@ const AllergenControl = () => {
     fetchData();
   };
 
-  const filtered = profiles.filter(p =>
-    p.product_name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.product_code?.toLowerCase().includes(search.toLowerCase())
-  );
+  const allergenFilters = [
+    { key: "label_status", label: "Label Status", options: [
+      { value: "draft", label: "Draft" },
+      { value: "verified", label: "Verified" },
+      { value: "needs_review", label: "Needs Review" },
+    ]},
+  ];
+
+  const filtered = profiles.filter(p => {
+    if (search && !p.product_name?.toLowerCase().includes(search.toLowerCase()) && !p.product_code?.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterValues.label_status && filterValues.label_status !== "all" && p.label_status !== filterValues.label_status) return false;
+    return true;
+  });
 
   const stats = {
     total: profiles.length,
@@ -161,12 +172,17 @@ const AllergenControl = () => {
         <Card><CardContent className="pt-4"><p className="metric-label">High Risk Products</p><p className="text-2xl font-bold text-severity-critical">{stats.highRisk}</p></CardContent></Card>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
-      </div>
+      <TableFilters
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search allergen profiles..."
+        filters={allergenFilters}
+        filterValues={filterValues}
+        onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+        resultCount={filtered.length}
+      />
 
-      <div className="rounded-md border">
+      <div className="data-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

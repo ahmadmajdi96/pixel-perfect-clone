@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
+import { TableFilters } from "@/components/TableFilters";
 
 const HaccpList = () => {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ const HaccpList = () => {
   const [ccps, setCcps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     ccp_number: "", process_step: "", hazard_type: "biological",
     hazard_description: "", critical_limit_upper: "", critical_limit_lower: "",
@@ -31,6 +34,25 @@ const HaccpList = () => {
     setCcps(data ?? []);
     setLoading(false);
   };
+
+  const filters = [
+    { key: "hazard_type", label: "Hazard", options: [
+      { value: "biological", label: "Biological" },
+      { value: "chemical", label: "Chemical" },
+      { value: "physical", label: "Physical" },
+    ]},
+    { key: "status", label: "Status", options: [
+      { value: "active", label: "Active" },
+      { value: "inactive", label: "Inactive" },
+    ]},
+  ];
+
+  const filtered = ccps.filter(c => {
+    if (search && !c.ccp_number?.toLowerCase().includes(search.toLowerCase()) && !c.process_step?.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterValues.hazard_type && filterValues.hazard_type !== "all" && c.hazard_type !== filterValues.hazard_type) return false;
+    if (filterValues.status && filterValues.status !== "all" && c.status !== filterValues.status) return false;
+    return true;
+  });
 
   const createCcp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,6 +144,16 @@ const HaccpList = () => {
         </Dialog>
       </div>
 
+      <TableFilters
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search CCPs..."
+        filters={filters}
+        filterValues={filterValues}
+        onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+        resultCount={filtered.length}
+      />
+
       <div className="data-card p-0 overflow-hidden">
         <Table>
           <TableHeader>
@@ -139,7 +171,7 @@ const HaccpList = () => {
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : ccps.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No CCPs registered</TableCell></TableRow>
-            ) : ccps.map((ccp) => (
+            ) : filtered.map((ccp) => (
               <TableRow key={ccp.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/haccp/${ccp.id}`)}>
                 <TableCell className="font-mono font-medium">{ccp.ccp_number}</TableCell>
                 <TableCell>{ccp.process_step}</TableCell>

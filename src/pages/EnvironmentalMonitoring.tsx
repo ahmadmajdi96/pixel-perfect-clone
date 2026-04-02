@@ -18,6 +18,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, MapPin, TestTube, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { TableFilters } from "@/components/TableFilters";
 import { format } from "date-fns";
 
 type Zone = {
@@ -51,6 +52,8 @@ const EnvironmentalMonitoring = () => {
   const [showPointDialog, setShowPointDialog] = useState(false);
   const [showResultDialog, setShowResultDialog] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
   const [zoneForm, setZoneForm] = useState({ zone_name: "", zone_number: "", zone_type: "zone_1", area_description: "", risk_level: "medium" });
   const [pointForm, setPointForm] = useState({ zone_id: "", point_code: "", location_description: "", surface_type: "", test_type: "swab", frequency: "weekly" });
@@ -116,6 +119,28 @@ const EnvironmentalMonitoring = () => {
   const passCount = results.filter(r => r.result === "pass").length;
   const pendingCount = results.filter(r => r.result === "pending").length;
 
+  const zoneFilters = [
+    { key: "zone_type", label: "Zone Type", options: ZONE_TYPES.map(t => ({ value: t, label: t.replace("_", " ").toUpperCase() })) },
+    { key: "risk_level", label: "Risk", options: RISK_LEVELS.map(r => ({ value: r, label: r.charAt(0).toUpperCase() + r.slice(1) })) },
+  ];
+
+  const filteredZones = zones.filter(z => {
+    if (search && !z.zone_name.toLowerCase().includes(search.toLowerCase()) && !z.zone_number.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterValues.zone_type && filterValues.zone_type !== "all" && z.zone_type !== filterValues.zone_type) return false;
+    if (filterValues.risk_level && filterValues.risk_level !== "all" && z.risk_level !== filterValues.risk_level) return false;
+    return true;
+  });
+
+  const filteredPoints = points.filter(p => {
+    if (search && !p.point_code.toLowerCase().includes(search.toLowerCase()) && !(p.location_description || "").toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const filteredResults = results.filter(r => {
+    if (search && !(r.emp_sampling_points?.point_code || "").toLowerCase().includes(search.toLowerCase()) && !(r.organism_detected || "").toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
   if (loading) return <div className="p-8 text-muted-foreground">Loading...</div>;
 
   return (
@@ -154,7 +179,16 @@ const EnvironmentalMonitoring = () => {
         </TabsList>
 
         <TabsContent value="zones" className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-3">
+            <TableFilters
+              search={search}
+              onSearchChange={setSearch}
+              searchPlaceholder="Search zones..."
+              filters={zoneFilters}
+              filterValues={filterValues}
+              onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+              resultCount={filteredZones.length}
+            />
             <Button size="sm" onClick={() => setShowZoneDialog(true)}><Plus className="mr-1 h-4 w-4" />Add Zone</Button>
           </div>
           <div className="data-card overflow-hidden">
@@ -164,7 +198,7 @@ const EnvironmentalMonitoring = () => {
                 <TableHead>Area</TableHead><TableHead>Risk</TableHead><TableHead>Status</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {zones.map(z => (
+                {filteredZones.map(z => (
                   <TableRow key={z.id}>
                     <TableCell className="font-mono">{z.zone_number}</TableCell>
                     <TableCell className="font-medium">{z.zone_name}</TableCell>
@@ -174,7 +208,7 @@ const EnvironmentalMonitoring = () => {
                     <TableCell><Badge variant={z.status === "active" ? "default" : "secondary"}>{z.status}</Badge></TableCell>
                   </TableRow>
                 ))}
-                {zones.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No zones defined</TableCell></TableRow>}
+                {filteredZones.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No zones found</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>
@@ -191,7 +225,7 @@ const EnvironmentalMonitoring = () => {
                 <TableHead>Surface</TableHead><TableHead>Test</TableHead><TableHead>Frequency</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {points.map(p => (
+                {filteredPoints.map(p => (
                   <TableRow key={p.id}>
                     <TableCell className="font-mono">{p.point_code}</TableCell>
                     <TableCell>{p.emp_zones?.zone_name || "—"}</TableCell>
@@ -201,7 +235,7 @@ const EnvironmentalMonitoring = () => {
                     <TableCell>{p.frequency}</TableCell>
                   </TableRow>
                 ))}
-                {points.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No sampling points</TableCell></TableRow>}
+                {filteredPoints.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No sampling points found</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>
@@ -218,7 +252,7 @@ const EnvironmentalMonitoring = () => {
                 <TableHead>Organism</TableHead><TableHead>CFU</TableHead><TableHead>Corrective Action</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {results.map(r => (
+                {filteredResults.map(r => (
                   <TableRow key={r.id}>
                     <TableCell>{format(new Date(r.sample_date), "dd MMM yyyy")}</TableCell>
                     <TableCell className="font-mono">{r.emp_sampling_points?.point_code || "—"}</TableCell>
@@ -231,12 +265,12 @@ const EnvironmentalMonitoring = () => {
                       {r.corrective_action_status === "required" ? (
                         <span className="text-xs text-destructive font-medium">⚠ Required</span>
                       ) : r.corrective_action_status === "completed" ? (
-                        <span className="text-xs text-emerald-500 font-medium">✓ Done</span>
+                        <span className="text-xs text-status-closed font-medium">✓ Done</span>
                       ) : "—"}
                     </TableCell>
                   </TableRow>
                 ))}
-                {results.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No results recorded</TableCell></TableRow>}
+                {filteredResults.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No results found</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>

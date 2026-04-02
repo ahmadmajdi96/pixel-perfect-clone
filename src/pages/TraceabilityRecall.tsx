@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, GitBranch, Timer } from "lucide-react";
+import { Plus, GitBranch, Timer } from "lucide-react";
+import { TableFilters } from "@/components/TableFilters";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -35,6 +36,7 @@ const TraceabilityRecall = () => {
   const [lotDialogOpen, setLotDialogOpen] = useState(false);
   const [recallDialogOpen, setRecallDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const [lotForm, setLotForm] = useState({ lot_number: "", product_name: "", product_code: "", input_lots: "", output_lots: "", quantity: "", quantity_unit: "kg", notes: "" });
   const [recallForm, setRecallForm] = useState({ title: "", exercise_type: "mock", trigger_reason: "", affected_lots: "", scope_description: "" });
 
@@ -91,10 +93,20 @@ const TraceabilityRecall = () => {
     fetchData();
   };
 
-  const filteredLots = lots.filter(l =>
-    l.lot_number?.toLowerCase().includes(search.toLowerCase()) ||
-    l.product_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const lotFilters = [
+    { key: "status", label: "Status", options: [
+      { value: "active", label: "Active" },
+      { value: "quarantined", label: "Quarantined" },
+      { value: "recalled", label: "Recalled" },
+      { value: "released", label: "Released" },
+    ]},
+  ];
+
+  const filteredLots = lots.filter(l => {
+    if (search && !l.lot_number?.toLowerCase().includes(search.toLowerCase()) && !l.product_name?.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterValues.status && filterValues.status !== "all" && l.status !== filterValues.status) return false;
+    return true;
+  });
 
   // Genealogy: find linked lots
   const [genealogyLot, setGenealogyLot] = useState("");
@@ -132,10 +144,15 @@ const TraceabilityRecall = () => {
 
         <TabsContent value="lots" className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search lots..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
-            </div>
+            <TableFilters
+              search={search}
+              onSearchChange={setSearch}
+              searchPlaceholder="Search lots..."
+              filters={lotFilters}
+              filterValues={filterValues}
+              onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+              resultCount={filteredLots.length}
+            />
             <Dialog open={lotDialogOpen} onOpenChange={setLotDialogOpen}>
               <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />New Lot</Button></DialogTrigger>
               <DialogContent>
@@ -158,7 +175,7 @@ const TraceabilityRecall = () => {
               </DialogContent>
             </Dialog>
           </div>
-          <div className="rounded-md border">
+          <div className="data-card overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -248,7 +265,7 @@ const TraceabilityRecall = () => {
               </DialogContent>
             </Dialog>
           </div>
-          <div className="rounded-md border">
+          <div className="data-card overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
