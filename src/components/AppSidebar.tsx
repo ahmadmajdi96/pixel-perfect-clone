@@ -13,6 +13,10 @@ import {
   TriangleAlert,
   ClipboardList,
   PackageSearch,
+  Wheat,
+  GitBranch,
+  BarChart3,
+  Settings,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -36,9 +40,11 @@ const coreNav = [
 
 const qualityNav = [
   { title: "HACCP", url: "/haccp", icon: ShieldAlert },
+  { title: "Allergens", url: "/allergens", icon: Wheat },
   { title: "Inspections", url: "/incoming-inspection", icon: ClipboardCheck },
   { title: "Suppliers", url: "/suppliers", icon: Truck },
   { title: "Audits", url: "/audits", icon: ClipboardList },
+  { title: "Traceability", url: "/traceability", icon: GitBranch },
 ];
 
 const systemNav = [
@@ -47,6 +53,8 @@ const systemNav = [
   { title: "Calibration", url: "/calibration", icon: Wrench },
   { title: "Training", url: "/training", icon: GraduationCap },
   { title: "Risk Register", url: "/risk", icon: PackageSearch },
+  { title: "Reports", url: "/reports", icon: BarChart3 },
+  { title: "Admin", url: "/admin", icon: Settings },
 ];
 
 export function AppSidebar() {

@@ -71,6 +71,10 @@ const App = () => (
               <Route path="/calibration" element={<CalibrationList />} />
               <Route path="/training" element={<TrainingList />} />
               <Route path="/risk" element={<RiskRegister />} />
+              <Route path="/allergens" element={<AllergenControl />} />
+              <Route path="/traceability" element={<TraceabilityRecall />} />
+              <Route path="/reports" element={<ReportsHub />} />
+              <Route path="/admin" element={<Administration />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
