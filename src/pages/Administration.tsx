@@ -132,7 +132,22 @@ const Administration = () => {
             </Dialog>
           </div>
           {!isAdmin && <p className="text-sm text-severity-medium">You need System Admin role to manage user roles.</p>}
-          <div className="rounded-md border">
+          <TableFilters
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search users..."
+            filters={[
+              { key: "role", label: "Role", options: ROLES.map(r => ({ value: r, label: ROLE_LABELS[r] || r })) },
+            ]}
+            filterValues={filterValues}
+            onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+            resultCount={profiles.filter(p => {
+              if (search && !(p.full_name || "").toLowerCase().includes(search.toLowerCase())) return false;
+              if (filterValues.role && filterValues.role !== "all" && !getUserRoles(p.user_id).includes(filterValues.role)) return false;
+              return true;
+            }).length}
+          />
+          <div className="data-card overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
