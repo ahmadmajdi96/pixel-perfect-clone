@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SupplierStatusBadge } from "@/components/StatusBadge";
 import { Plus } from "lucide-react";
@@ -62,7 +61,7 @@ const SupplierList = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Supplier Quality</h1>
-          <p className="text-sm text-muted-foreground">Manage supplier directory and qualifications</p>
+          <p className="metric-label mt-1">Manage supplier directory and qualifications</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -105,40 +104,38 @@ const SupplierList = () => {
         </Select>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Code</TableHead>
-                <TableHead>Categories</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Country</TableHead>
-                <TableHead>Contact</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-              ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No suppliers found</TableCell></TableRow>
-              ) : (
-                filtered.map((s) => (
-                  <TableRow key={s.id} className="cursor-pointer" onClick={() => navigate(`/suppliers/${s.id}`)}>
-                    <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell className="font-mono text-sm">{s.code ?? "—"}</TableCell>
-                    <TableCell className="text-sm">{(s.categories ?? []).join(", ") || "—"}</TableCell>
-                    <TableCell><SupplierStatusBadge status={s.status} /></TableCell>
-                    <TableCell className="text-sm">{s.country ?? "—"}</TableCell>
-                    <TableCell className="text-sm">{s.contact_name ?? "—"}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <div className="data-card p-0 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Code</TableHead>
+              <TableHead>Categories</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Country</TableHead>
+              <TableHead>Contact</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No suppliers found</TableCell></TableRow>
+            ) : (
+              filtered.map((s) => (
+                <TableRow key={s.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/suppliers/${s.id}`)}>
+                  <TableCell className="font-medium">{s.name}</TableCell>
+                  <TableCell className="font-mono text-sm">{s.code ?? "—"}</TableCell>
+                  <TableCell className="text-sm">{(s.categories ?? []).join(", ") || "—"}</TableCell>
+                  <TableCell><SupplierStatusBadge status={s.status} /></TableCell>
+                  <TableCell className="text-sm">{s.country ?? "—"}</TableCell>
+                  <TableCell className="text-sm">{s.contact_name ?? "—"}</TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

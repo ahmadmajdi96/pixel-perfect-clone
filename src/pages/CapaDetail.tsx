@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SeverityBadge } from "@/components/SeverityBadge";
@@ -118,32 +117,30 @@ const CapaDetail = () => {
       </div>
 
       {/* Stage Progress */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-1 overflow-x-auto">
-            {CAPA_STAGES.map((stage, i) => (
-              <div key={stage} className="flex items-center">
-                <div className={`rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap ${
-                  i < currentIndex ? "bg-status-closed text-white" :
-                  i === currentIndex ? "bg-primary text-primary-foreground" :
-                  "bg-muted text-muted-foreground"
-                }`}>
-                  {CAPA_STAGE_LABELS[stage]}
-                </div>
-                {i < CAPA_STAGES.length - 1 && <ChevronRight className="h-4 w-4 text-muted-foreground mx-1" />}
+      <div className="data-card">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-thin">
+          {CAPA_STAGES.map((stage, i) => (
+            <div key={stage} className="flex items-center">
+              <div className={`rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap ${
+                i < currentIndex ? "status-badge bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]" :
+                i === currentIndex ? "bg-primary text-primary-foreground" :
+                "bg-muted text-muted-foreground"
+              }`}>
+                {CAPA_STAGE_LABELS[stage]}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              {i < CAPA_STAGES.length - 1 && <ChevronRight className="h-4 w-4 text-muted-foreground mx-1" />}
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Details */}
-          <Card>
-            <CardHeader><CardTitle className="text-base">Details</CardTitle></CardHeader>
-            <CardContent className="space-y-3 text-sm">
+          <div className="data-card">
+            <h3 className="metric-label mb-4">Details</h3>
+            <div className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-4">
                 <div><span className="text-muted-foreground">Source:</span> <span className="ml-2">{capa.source_type}</span></div>
                 <div><span className="text-muted-foreground">Product/Line:</span> <span className="ml-2">{capa.product_line || "—"}</span></div>
@@ -151,32 +148,28 @@ const CapaDetail = () => {
                 <div><span className="text-muted-foreground">SLA:</span> <span className="ml-2">{capa.sla_deadline ? formatDistanceToNow(new Date(capa.sla_deadline), { addSuffix: true }) : "—"}</span></div>
               </div>
               {capa.description && <><Separator /><p>{capa.description}</p></>}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* RCA Section */}
           {(capa.status === "root_cause_analysis" || currentIndex > 1) && (
-            <Card>
-              <CardHeader><CardTitle className="text-base">Root Cause Analysis — 5-Why Template</CardTitle></CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Why 1: ...&#10;Why 2: ...&#10;Why 3: ...&#10;Why 4: ...&#10;Why 5: (Root Cause)"
-                  value={rcaNotes}
-                  onChange={(e) => setRcaNotes(e.target.value)}
-                  rows={6}
-                />
-              </CardContent>
-            </Card>
+            <div className="data-card">
+              <h3 className="metric-label mb-4">Root Cause Analysis — 5-Why Template</h3>
+              <Textarea
+                placeholder="Why 1: ...&#10;Why 2: ...&#10;Why 3: ...&#10;Why 4: ...&#10;Why 5: (Root Cause)"
+                value={rcaNotes}
+                onChange={(e) => setRcaNotes(e.target.value)}
+                rows={6}
+              />
+            </div>
           )}
 
           {/* Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <div className="data-card">
+            <h3 className="metric-label mb-4">Actions</h3>
+            <div className="space-y-3">
               {actions.map((action) => (
-                <div key={action.id} className="flex items-center gap-3 rounded-lg border p-3">
+                <div key={action.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
                   <input
                     type="checkbox"
                     checked={action.status === "completed"}
@@ -202,30 +195,28 @@ const CapaDetail = () => {
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Timeline */}
         <div>
-          <Card>
-            <CardHeader><CardTitle className="text-base">Audit Trail</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {timeline.map((entry) => (
-                  <div key={entry.id} className="border-l-2 border-primary/30 pl-3">
-                    <p className="text-sm">{entry.description}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(entry.created_at), "PPp")}
-                    </p>
-                  </div>
-                ))}
-                {timeline.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">No events yet</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="data-card">
+            <h3 className="metric-label mb-4">Audit Trail</h3>
+            <div className="space-y-3">
+              {timeline.map((entry) => (
+                <div key={entry.id} className="border-l-2 border-primary/30 pl-3">
+                  <p className="text-sm">{entry.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(entry.created_at), "PPp")}
+                  </p>
+                </div>
+              ))}
+              {timeline.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No events yet</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
