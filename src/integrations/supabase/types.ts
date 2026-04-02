@@ -14,16 +14,517 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      capa_actions: {
+        Row: {
+          action_type: string
+          assigned_to: string | null
+          capa_id: string
+          completed_at: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          action_type?: string
+          assigned_to?: string | null
+          capa_id: string
+          completed_at?: string | null
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          assigned_to?: string | null
+          capa_id?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capa_actions_capa_id_fkey"
+            columns: ["capa_id"]
+            isOneToOne: false
+            referencedRelation: "capas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      capa_timeline: {
+        Row: {
+          capa_id: string
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          capa_id: string
+          created_at?: string
+          description: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          capa_id?: string
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capa_timeline_capa_id_fkey"
+            columns: ["capa_id"]
+            isOneToOne: false
+            referencedRelation: "capas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      capas: {
+        Row: {
+          assigned_to: string | null
+          capa_number: string
+          closed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          owner_id: string | null
+          product_line: string | null
+          severity: Database["public"]["Enums"]["capa_severity"]
+          sla_deadline: string | null
+          source_reference: string | null
+          source_type: string
+          status: Database["public"]["Enums"]["capa_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          capa_number?: string
+          closed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          owner_id?: string | null
+          product_line?: string | null
+          severity?: Database["public"]["Enums"]["capa_severity"]
+          sla_deadline?: string | null
+          source_reference?: string | null
+          source_type?: string
+          status?: Database["public"]["Enums"]["capa_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          capa_number?: string
+          closed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          owner_id?: string | null
+          product_line?: string | null
+          severity?: Database["public"]["Enums"]["capa_severity"]
+          sla_deadline?: string | null
+          source_reference?: string | null
+          source_type?: string
+          status?: Database["public"]["Enums"]["capa_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      complaint_investigations: {
+        Row: {
+          complaint_id: string
+          completed_at: string | null
+          contributing_factors: string | null
+          created_at: string
+          findings: string | null
+          id: string
+          investigator_id: string | null
+          probable_cause: string | null
+          recommendations: string | null
+          trend_assessment: string | null
+          updated_at: string
+        }
+        Insert: {
+          complaint_id: string
+          completed_at?: string | null
+          contributing_factors?: string | null
+          created_at?: string
+          findings?: string | null
+          id?: string
+          investigator_id?: string | null
+          probable_cause?: string | null
+          recommendations?: string | null
+          trend_assessment?: string | null
+          updated_at?: string
+        }
+        Update: {
+          complaint_id?: string
+          completed_at?: string | null
+          contributing_factors?: string | null
+          created_at?: string
+          findings?: string | null
+          id?: string
+          investigator_id?: string | null
+          probable_cause?: string | null
+          recommendations?: string | null
+          trend_assessment?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_investigations_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      complaints: {
+        Row: {
+          batch_number: string | null
+          capa_id: string | null
+          complainant_contact: string | null
+          complainant_name: string | null
+          complaint_number: string
+          complaint_type: Database["public"]["Enums"]["complaint_type"]
+          created_at: string
+          description: string
+          id: string
+          logged_by: string | null
+          product: string
+          regulatory_flag: boolean
+          resolved_at: string | null
+          severity: Database["public"]["Enums"]["complaint_severity"]
+          source: string
+          status: Database["public"]["Enums"]["complaint_status"]
+          updated_at: string
+        }
+        Insert: {
+          batch_number?: string | null
+          capa_id?: string | null
+          complainant_contact?: string | null
+          complainant_name?: string | null
+          complaint_number?: string
+          complaint_type?: Database["public"]["Enums"]["complaint_type"]
+          created_at?: string
+          description: string
+          id?: string
+          logged_by?: string | null
+          product: string
+          regulatory_flag?: boolean
+          resolved_at?: string | null
+          severity?: Database["public"]["Enums"]["complaint_severity"]
+          source?: string
+          status?: Database["public"]["Enums"]["complaint_status"]
+          updated_at?: string
+        }
+        Update: {
+          batch_number?: string | null
+          capa_id?: string | null
+          complainant_contact?: string | null
+          complainant_name?: string | null
+          complaint_number?: string
+          complaint_type?: Database["public"]["Enums"]["complaint_type"]
+          created_at?: string
+          description?: string
+          id?: string
+          logged_by?: string | null
+          product?: string
+          regulatory_flag?: boolean
+          resolved_at?: string | null
+          severity?: Database["public"]["Enums"]["complaint_severity"]
+          source?: string
+          status?: Database["public"]["Enums"]["complaint_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaints_capa_id_fkey"
+            columns: ["capa_id"]
+            isOneToOne: false
+            referencedRelation: "capas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          department: string | null
+          full_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          full_name?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          full_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      supplier_coas: {
+        Row: {
+          created_at: string
+          document_url: string | null
+          expiry_date: string | null
+          id: string
+          ingredient: string
+          issue_date: string | null
+          lot_number: string | null
+          status: string
+          supplier_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          ingredient: string
+          issue_date?: string | null
+          lot_number?: string | null
+          status?: string
+          supplier_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          ingredient?: string
+          issue_date?: string | null
+          lot_number?: string | null
+          status?: string
+          supplier_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_coas_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_scorecards: {
+        Row: {
+          compliance_score: number | null
+          created_at: string
+          delivery_score: number | null
+          documentation_score: number | null
+          id: string
+          notes: string | null
+          overall_score: number | null
+          period: string
+          quality_score: number | null
+          responsiveness_score: number | null
+          scored_by: string | null
+          supplier_id: string
+        }
+        Insert: {
+          compliance_score?: number | null
+          created_at?: string
+          delivery_score?: number | null
+          documentation_score?: number | null
+          id?: string
+          notes?: string | null
+          overall_score?: number | null
+          period: string
+          quality_score?: number | null
+          responsiveness_score?: number | null
+          scored_by?: string | null
+          supplier_id: string
+        }
+        Update: {
+          compliance_score?: number | null
+          created_at?: string
+          delivery_score?: number | null
+          documentation_score?: number | null
+          id?: string
+          notes?: string | null
+          overall_score?: number | null
+          period?: string
+          quality_score?: number | null
+          responsiveness_score?: number | null
+          scored_by?: string | null
+          supplier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_scorecards_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          categories: string[] | null
+          code: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          last_audit_date: string | null
+          name: string
+          next_requalification_date: string | null
+          notes: string | null
+          status: Database["public"]["Enums"]["supplier_status"]
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          categories?: string[] | null
+          code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_audit_date?: string | null
+          name: string
+          next_requalification_date?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["supplier_status"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          categories?: string[] | null
+          code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_audit_date?: string | null
+          name?: string
+          next_requalification_date?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["supplier_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "qa_manager"
+        | "food_safety_manager"
+        | "quality_technician"
+        | "food_technologist"
+        | "supplier_quality_manager"
+        | "plant_manager"
+        | "system_admin"
+      capa_severity: "critical" | "high" | "medium" | "low"
+      capa_status:
+        | "initiation"
+        | "root_cause_analysis"
+        | "action_assignment"
+        | "preventive_action"
+        | "verification"
+        | "effectiveness_check"
+        | "closure"
+      complaint_severity: "critical" | "high" | "medium" | "low"
+      complaint_status: "logged" | "investigating" | "resolved" | "closed"
+      complaint_type:
+        | "foreign_body"
+        | "allergen"
+        | "mislabeling"
+        | "quality_defect"
+        | "packaging"
+        | "taste_odor"
+        | "microbiological"
+        | "chemical"
+        | "other"
+      supplier_status:
+        | "approved"
+        | "conditional"
+        | "suspended"
+        | "rejected"
+        | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +651,46 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "qa_manager",
+        "food_safety_manager",
+        "quality_technician",
+        "food_technologist",
+        "supplier_quality_manager",
+        "plant_manager",
+        "system_admin",
+      ],
+      capa_severity: ["critical", "high", "medium", "low"],
+      capa_status: [
+        "initiation",
+        "root_cause_analysis",
+        "action_assignment",
+        "preventive_action",
+        "verification",
+        "effectiveness_check",
+        "closure",
+      ],
+      complaint_severity: ["critical", "high", "medium", "low"],
+      complaint_status: ["logged", "investigating", "resolved", "closed"],
+      complaint_type: [
+        "foreign_body",
+        "allergen",
+        "mislabeling",
+        "quality_defect",
+        "packaging",
+        "taste_odor",
+        "microbiological",
+        "chemical",
+        "other",
+      ],
+      supplier_status: [
+        "approved",
+        "conditional",
+        "suspended",
+        "rejected",
+        "pending",
+      ],
+    },
   },
 } as const
