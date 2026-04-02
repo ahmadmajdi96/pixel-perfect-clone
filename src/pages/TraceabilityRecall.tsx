@@ -144,10 +144,15 @@ const TraceabilityRecall = () => {
 
         <TabsContent value="lots" className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search lots..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
-            </div>
+            <TableFilters
+              search={search}
+              onSearchChange={setSearch}
+              searchPlaceholder="Search lots..."
+              filters={lotFilters}
+              filterValues={filterValues}
+              onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+              resultCount={filteredLots.length}
+            />
             <Dialog open={lotDialogOpen} onOpenChange={setLotDialogOpen}>
               <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />New Lot</Button></DialogTrigger>
               <DialogContent>
