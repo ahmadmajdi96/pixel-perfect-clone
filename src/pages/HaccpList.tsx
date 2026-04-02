@@ -144,6 +144,16 @@ const HaccpList = () => {
         </Dialog>
       </div>
 
+      <TableFilters
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search CCPs..."
+        filters={filters}
+        filterValues={filterValues}
+        onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+        resultCount={filtered.length}
+      />
+
       <div className="data-card p-0 overflow-hidden">
         <Table>
           <TableHeader>
