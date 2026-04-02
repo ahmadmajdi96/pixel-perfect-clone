@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { AlertTriangle, MessageSquareWarning, Truck, Plus, ClipboardList } from "lucide-react";
@@ -20,7 +19,6 @@ const Dashboard = () => {
   }, []);
 
   const fetchDashboardData = async () => {
-    // Fetch open CAPAs by severity
     const { data: capas } = await supabase
       .from("capas")
       .select("severity, status")
@@ -34,20 +32,17 @@ const Dashboard = () => {
       setCapaSummary(summary);
     }
 
-    // Fetch active complaints count
     const { count } = await supabase
       .from("complaints")
       .select("*", { count: "exact", head: true })
       .in("status", ["logged", "investigating"]);
     setComplaintCount(count ?? 0);
 
-    // Fetch supplier count
     const { count: sCount } = await supabase
       .from("suppliers")
       .select("*", { count: "exact", head: true });
     setSupplierCount(sCount ?? 0);
 
-    // Recent CAPAs
     const { data: recent } = await supabase
       .from("capas")
       .select("*")
@@ -55,7 +50,6 @@ const Dashboard = () => {
       .limit(5);
     setRecentCapas(recent ?? []);
 
-    // Complaint trend (last 30 days mock - use real data if available)
     const { data: complaints } = await supabase
       .from("complaints")
       .select("created_at")
@@ -77,7 +71,7 @@ const Dashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quality Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Real-time quality metrics overview</p>
+          <p className="metric-label mt-1">Real-time quality metrics overview</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => navigate("/complaints/new")} size="sm">
@@ -93,113 +87,104 @@ const Dashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/capa")}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open CAPAs</CardTitle>
+        <div className="data-card cursor-pointer" onClick={() => navigate("/capa")}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">Open CAPAs</span>
             <AlertTriangle className="h-4 w-4 text-severity-high" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{capaSummary.total}</div>
-            <div className="mt-2 flex gap-1">
-              {capaSummary.critical > 0 && <SeverityBadge severity="critical" />}
-              {capaSummary.high > 0 && <SeverityBadge severity="high" />}
-              {capaSummary.medium > 0 && <SeverityBadge severity="medium" />}
-              {capaSummary.low > 0 && <SeverityBadge severity="low" />}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="metric-value">{capaSummary.total}</div>
+          <div className="mt-3 flex gap-1">
+            {capaSummary.critical > 0 && <SeverityBadge severity="critical" />}
+            {capaSummary.high > 0 && <SeverityBadge severity="high" />}
+            {capaSummary.medium > 0 && <SeverityBadge severity="medium" />}
+            {capaSummary.low > 0 && <SeverityBadge severity="low" />}
+          </div>
+        </div>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/complaints")}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Complaints</CardTitle>
+        <div className="data-card cursor-pointer" onClick={() => navigate("/complaints")}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">Active Complaints</span>
             <MessageSquareWarning className="h-4 w-4 text-severity-medium" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{complaintCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Logged + Investigating</p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="metric-value">{complaintCount}</div>
+          <p className="text-xs text-muted-foreground mt-1">Logged + Investigating</p>
+        </div>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/suppliers")}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Suppliers</CardTitle>
+        <div className="data-card cursor-pointer" onClick={() => navigate("/suppliers")}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">Suppliers</span>
             <Truck className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{supplierCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Total registered</p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="metric-value">{supplierCount}</div>
+          <p className="text-xs text-muted-foreground mt-1">Total registered</p>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">CAPA by Severity</CardTitle>
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">CAPA by Severity</span>
             <ClipboardList className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between"><span>Critical</span><span className="font-bold text-severity-critical">{capaSummary.critical}</span></div>
-              <div className="flex justify-between"><span>High</span><span className="font-bold text-severity-high">{capaSummary.high}</span></div>
-              <div className="flex justify-between"><span>Medium</span><span className="font-bold text-severity-medium">{capaSummary.medium}</span></div>
-              <div className="flex justify-between"><span>Low</span><span className="font-bold text-severity-low">{capaSummary.low}</span></div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="space-y-1.5 text-sm">
+            <div className="flex justify-between"><span>Critical</span><span className="font-mono font-bold text-severity-critical">{capaSummary.critical}</span></div>
+            <div className="flex justify-between"><span>High</span><span className="font-mono font-bold text-severity-high">{capaSummary.high}</span></div>
+            <div className="flex justify-between"><span>Medium</span><span className="font-mono font-bold text-severity-medium">{capaSummary.medium}</span></div>
+            <div className="flex justify-between"><span>Low</span><span className="font-mono font-bold text-severity-low">{capaSummary.low}</span></div>
+          </div>
+        </div>
       </div>
 
       {/* Charts & Recent */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Complaint Trend (30 Days)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {complaintTrend.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={complaintTrend}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="date" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
-                No complaint data yet
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="data-card">
+          <h3 className="metric-label mb-4">Complaint Trend (30 Days)</h3>
+          {complaintTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={complaintTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
+                <XAxis dataKey="date" tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
+                <YAxis tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(220 18% 12%)",
+                    border: "1px solid hsl(220 14% 18%)",
+                    borderRadius: "8px",
+                    color: "hsl(210 20% 90%)",
+                  }}
+                />
+                <Line type="monotone" dataKey="count" stroke="hsl(210 100% 56%)" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
+              No complaint data yet
+            </div>
+          )}
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Recent CAPAs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {recentCapas.length > 0 ? (
-              <div className="space-y-3">
-                {recentCapas.map((capa) => (
-                  <div
-                    key={capa.id}
-                    className="flex items-center justify-between rounded-lg border p-3 cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => navigate(`/capa/${capa.id}`)}
-                  >
-                    <div>
-                      <p className="font-medium text-sm">{capa.capa_number}</p>
-                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">{capa.title}</p>
-                    </div>
-                    <SeverityBadge severity={capa.severity} />
+        <div className="data-card">
+          <h3 className="metric-label mb-4">Recent CAPAs</h3>
+          {recentCapas.length > 0 ? (
+            <div className="space-y-3">
+              {recentCapas.map((capa) => (
+                <div
+                  key={capa.id}
+                  className="flex items-center justify-between rounded-lg border border-border p-3 cursor-pointer hover:border-primary/30 transition-colors"
+                  onClick={() => navigate(`/capa/${capa.id}`)}
+                >
+                  <div>
+                    <p className="font-mono font-medium text-sm">{capa.capa_number}</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">{capa.title}</p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
-                No CAPAs created yet
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <SeverityBadge severity={capa.severity} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
+              No CAPAs created yet
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

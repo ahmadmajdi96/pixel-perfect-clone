@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SupplierStatusBadge } from "@/components/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
@@ -78,105 +77,103 @@ const SupplierDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Info */}
-          <Card>
-            <CardHeader><CardTitle className="text-base">Supplier Information</CardTitle></CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4 text-sm">
+          <div className="data-card">
+            <h3 className="metric-label mb-4">Supplier Information</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
               <div><span className="text-muted-foreground">Contact:</span> {supplier.contact_name ?? "—"}</div>
               <div><span className="text-muted-foreground">Email:</span> {supplier.contact_email ?? "—"}</div>
               <div><span className="text-muted-foreground">Phone:</span> {supplier.contact_phone ?? "—"}</div>
               <div><span className="text-muted-foreground">Categories:</span> {(supplier.categories ?? []).join(", ") || "—"}</div>
               {supplier.notes && <><Separator className="col-span-2" /><p className="col-span-2">{supplier.notes}</p></>}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* COA Library */}
-          <Card>
-            <CardHeader><CardTitle className="text-base">COA / Specification Library</CardTitle></CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ingredient</TableHead>
-                    <TableHead>Lot</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Issue Date</TableHead>
-                    <TableHead>Expiry</TableHead>
+          <div className="data-card p-0 overflow-hidden">
+            <div className="p-4 pb-0">
+              <h3 className="metric-label mb-4">COA / Specification Library</h3>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ingredient</TableHead>
+                  <TableHead>Lot</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Issue Date</TableHead>
+                  <TableHead>Expiry</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {coas.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground">No COAs uploaded</TableCell></TableRow>
+                ) : coas.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell>{c.ingredient}</TableCell>
+                    <TableCell className="font-mono text-sm">{c.lot_number ?? "—"}</TableCell>
+                    <TableCell className="capitalize">{c.status}</TableCell>
+                    <TableCell>{c.issue_date ? format(new Date(c.issue_date), "PP") : "—"}</TableCell>
+                    <TableCell>{c.expiry_date ? format(new Date(c.expiry_date), "PP") : "—"}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {coas.length === 0 ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground">No COAs uploaded</TableCell></TableRow>
-                  ) : coas.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell>{c.ingredient}</TableCell>
-                      <TableCell className="font-mono text-sm">{c.lot_number ?? "—"}</TableCell>
-                      <TableCell className="capitalize">{c.status}</TableCell>
-                      <TableCell>{c.issue_date ? format(new Date(c.issue_date), "PP") : "—"}</TableCell>
-                      <TableCell>{c.expiry_date ? format(new Date(c.expiry_date), "PP") : "—"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {/* Scorecard History */}
-          <Card>
-            <CardHeader><CardTitle className="text-base">Scorecard History</CardTitle></CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Period</TableHead>
-                    <TableHead>Quality</TableHead>
-                    <TableHead>Delivery</TableHead>
-                    <TableHead>Docs</TableHead>
-                    <TableHead>Response</TableHead>
-                    <TableHead>Compliance</TableHead>
-                    <TableHead>Overall</TableHead>
+          <div className="data-card p-0 overflow-hidden">
+            <div className="p-4 pb-0">
+              <h3 className="metric-label mb-4">Scorecard History</h3>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Period</TableHead>
+                  <TableHead>Quality</TableHead>
+                  <TableHead>Delivery</TableHead>
+                  <TableHead>Docs</TableHead>
+                  <TableHead>Response</TableHead>
+                  <TableHead>Compliance</TableHead>
+                  <TableHead>Overall</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {scorecards.length === 0 ? (
+                  <TableRow><TableCell colSpan={7} className="text-center py-6 text-muted-foreground">No scorecards yet</TableCell></TableRow>
+                ) : scorecards.map((sc) => (
+                  <TableRow key={sc.id}>
+                    <TableCell>{sc.period}</TableCell>
+                    <TableCell className="font-mono">{Number(sc.quality_score).toFixed(1)}</TableCell>
+                    <TableCell className="font-mono">{Number(sc.delivery_score).toFixed(1)}</TableCell>
+                    <TableCell className="font-mono">{Number(sc.documentation_score).toFixed(1)}</TableCell>
+                    <TableCell className="font-mono">{Number(sc.responsiveness_score).toFixed(1)}</TableCell>
+                    <TableCell className="font-mono">{Number(sc.compliance_score).toFixed(1)}</TableCell>
+                    <TableCell className="font-mono font-bold">{Number(sc.overall_score).toFixed(1)}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {scorecards.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-6 text-muted-foreground">No scorecards yet</TableCell></TableRow>
-                  ) : scorecards.map((sc) => (
-                    <TableRow key={sc.id}>
-                      <TableCell>{sc.period}</TableCell>
-                      <TableCell>{Number(sc.quality_score).toFixed(1)}</TableCell>
-                      <TableCell>{Number(sc.delivery_score).toFixed(1)}</TableCell>
-                      <TableCell>{Number(sc.documentation_score).toFixed(1)}</TableCell>
-                      <TableCell>{Number(sc.responsiveness_score).toFixed(1)}</TableCell>
-                      <TableCell>{Number(sc.compliance_score).toFixed(1)}</TableCell>
-                      <TableCell className="font-bold">{Number(sc.overall_score).toFixed(1)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
         {/* Scorecard Radar */}
         <div>
-          <Card>
-            <CardHeader><CardTitle className="text-base">Performance Radar</CardTitle></CardHeader>
-            <CardContent>
-              {radarData ? (
-                <ResponsiveContainer width="100%" height={280}>
-                  <RadarChart data={radarData}>
-                    <PolarGrid className="stroke-border" />
-                    <PolarAngleAxis dataKey="metric" className="text-xs" />
-                    <PolarRadiusAxis domain={[0, 100]} />
-                    <Radar dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">
-                  No scorecard data
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="data-card">
+            <h3 className="metric-label mb-4">Performance Radar</h3>
+            {radarData ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="hsl(220 14% 18%)" />
+                  <PolarAngleAxis dataKey="metric" tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
+                  <PolarRadiusAxis domain={[0, 100]} />
+                  <Radar dataKey="score" stroke="hsl(210 100% 56%)" fill="hsl(210 100% 56%)" fillOpacity={0.3} />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">
+                No scorecard data
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

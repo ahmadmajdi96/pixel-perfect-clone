@@ -3,13 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { ComplaintStatusBadge } from "@/components/StatusBadge";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
@@ -102,9 +100,9 @@ const ComplaintDetail = () => {
             <SeverityBadge severity={complaint.severity} />
             <ComplaintStatusBadge status={complaint.status} />
             {complaint.regulatory_flag && (
-              <Badge className="bg-severity-critical text-white border-transparent">
+              <span className="status-badge bg-[hsl(var(--severity-critical)/0.15)] text-severity-critical border border-[hsl(var(--severity-critical)/0.3)]">
                 <AlertTriangle className="mr-1 h-3 w-3" />Regulatory
-              </Badge>
+              </span>
             )}
           </div>
           <p className="text-sm text-muted-foreground mt-1">{complaint.product} · Batch: {complaint.batch_number ?? "N/A"}</p>
@@ -125,9 +123,9 @@ const ComplaintDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Complaint Info */}
-          <Card>
-            <CardHeader><CardTitle className="text-base">Complaint Information</CardTitle></CardHeader>
-            <CardContent className="space-y-3 text-sm">
+          <div className="data-card">
+            <h3 className="metric-label mb-4">Complaint Information</h3>
+            <div className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-4">
                 <div><span className="text-muted-foreground">Type:</span> {typeLabel}</div>
                 <div><span className="text-muted-foreground">Source:</span> {complaint.source}</div>
@@ -138,13 +136,13 @@ const ComplaintDetail = () => {
               </div>
               <Separator />
               <p>{complaint.description}</p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Investigation */}
-          <Card>
-            <CardHeader><CardTitle className="text-base">Investigation</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
+          <div className="data-card">
+            <h3 className="metric-label mb-4">Investigation</h3>
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Probable Cause</Label>
                 <Textarea value={invForm.probable_cause} onChange={(e) => setInvForm({ ...invForm, probable_cause: e.target.value })} rows={3} />
@@ -162,30 +160,28 @@ const ComplaintDetail = () => {
                 <Textarea value={invForm.recommendations} onChange={(e) => setInvForm({ ...invForm, recommendations: e.target.value })} rows={3} />
               </div>
               <Button onClick={saveInvestigation}>Save Investigation</Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* CAPA Link */}
         <div>
-          <Card>
-            <CardHeader><CardTitle className="text-base">CAPA Link</CardTitle></CardHeader>
-            <CardContent>
-              {complaint.capa_id ? (
-                <div>
-                  <p className="text-sm mb-2">CAPA is linked to this complaint.</p>
-                  <Button size="sm" variant="outline" onClick={() => navigate(`/capa/${complaint.capa_id}`)}>
-                    View CAPA
-                  </Button>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-3">No CAPA linked yet.</p>
-                  <Button size="sm" onClick={createLinkedCapa}>Create Linked CAPA</Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="data-card">
+            <h3 className="metric-label mb-4">CAPA Link</h3>
+            {complaint.capa_id ? (
+              <div>
+                <p className="text-sm mb-2">CAPA is linked to this complaint.</p>
+                <Button size="sm" variant="outline" onClick={() => navigate(`/capa/${complaint.capa_id}`)}>
+                  View CAPA
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-muted-foreground mb-3">No CAPA linked yet.</p>
+                <Button size="sm" onClick={createLinkedCapa}>Create Linked CAPA</Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
