@@ -17,6 +17,26 @@ import {
   GitBranch,
   BarChart3,
   Settings,
+  Microscope,
+} from "lucide-react";
+  LayoutDashboard,
+  AlertTriangle,
+  Truck,
+  MessageSquareWarning,
+  Shield,
+  ShieldAlert,
+  ClipboardCheck,
+  GitPullRequest,
+  FileText,
+  Wrench,
+  GraduationCap,
+  TriangleAlert,
+  ClipboardList,
+  PackageSearch,
+  Wheat,
+  GitBranch,
+  BarChart3,
+  Settings,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useSidebar } from "@/components/ui/sidebar";
