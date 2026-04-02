@@ -106,9 +106,12 @@ export type Database = {
           closed_at: string | null
           created_at: string
           description: string | null
+          effectiveness_check_date: string | null
+          effectiveness_result: string | null
           id: string
           owner_id: string | null
           product_line: string | null
+          root_cause_notes: string | null
           severity: Database["public"]["Enums"]["capa_severity"]
           sla_deadline: string | null
           source_reference: string | null
@@ -116,6 +119,8 @@ export type Database = {
           status: Database["public"]["Enums"]["capa_status"]
           title: string
           updated_at: string
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           assigned_to?: string | null
@@ -123,9 +128,12 @@ export type Database = {
           closed_at?: string | null
           created_at?: string
           description?: string | null
+          effectiveness_check_date?: string | null
+          effectiveness_result?: string | null
           id?: string
           owner_id?: string | null
           product_line?: string | null
+          root_cause_notes?: string | null
           severity?: Database["public"]["Enums"]["capa_severity"]
           sla_deadline?: string | null
           source_reference?: string | null
@@ -133,6 +141,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["capa_status"]
           title: string
           updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           assigned_to?: string | null
@@ -140,9 +150,12 @@ export type Database = {
           closed_at?: string | null
           created_at?: string
           description?: string | null
+          effectiveness_check_date?: string | null
+          effectiveness_result?: string | null
           id?: string
           owner_id?: string | null
           product_line?: string | null
+          root_cause_notes?: string | null
           severity?: Database["public"]["Enums"]["capa_severity"]
           sla_deadline?: string | null
           source_reference?: string | null
@@ -150,6 +163,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["capa_status"]
           title?: string
           updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: []
       }
