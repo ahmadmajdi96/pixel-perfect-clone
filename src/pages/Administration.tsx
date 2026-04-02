@@ -35,6 +35,8 @@ const Administration = () => {
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
+  const [search, setSearch] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
   const isAdmin = myRoles.includes("system_admin");
 
