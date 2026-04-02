@@ -18,6 +18,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, MapPin, TestTube, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { TableFilters } from "@/components/TableFilters";
 import { format } from "date-fns";
 
 type Zone = {
