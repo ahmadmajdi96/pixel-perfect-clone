@@ -172,12 +172,17 @@ const AllergenControl = () => {
         <Card><CardContent className="pt-4"><p className="metric-label">High Risk Products</p><p className="text-2xl font-bold text-severity-critical">{stats.highRisk}</p></CardContent></Card>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
-      </div>
+      <TableFilters
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search allergen profiles..."
+        filters={allergenFilters}
+        filterValues={filterValues}
+        onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+        resultCount={filtered.length}
+      />
 
-      <div className="rounded-md border">
+      <div className="data-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
