@@ -9,9 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, ClipboardList } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
+import { TableFilters } from "@/components/TableFilters";
 
 const STATUS_COLORS: Record<string, string> = {
   scheduled: "bg-primary/15 text-primary border border-primary/30",
@@ -26,6 +27,8 @@ const AuditList = () => {
   const [audits, setAudits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<Record<string, string>>({ status: "all", type: "all" });
   const [form, setForm] = useState({ title: "", audit_type: "internal", standard: "", scheduled_date: "", scope: "" });
 
   useEffect(() => { fetchData(); }, []);
@@ -51,6 +54,16 @@ const AuditList = () => {
     fetchData();
   };
 
+  const filtered = audits.filter((a) => {
+    if (filters.status !== "all" && a.status !== filters.status) return false;
+    if (filters.type !== "all" && a.audit_type !== filters.type) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return a.audit_number.toLowerCase().includes(q) || a.title.toLowerCase().includes(q) || (a.standard ?? "").toLowerCase().includes(q);
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -65,15 +78,10 @@ const AuditList = () => {
             <form onSubmit={createAudit} className="space-y-4">
               <div className="space-y-2"><Label>Title *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Type</Label>
+                <div className="space-y-2"><Label>Type</Label>
                   <Select value={form.audit_type} onValueChange={(v) => setForm({ ...form, audit_type: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="internal">Internal</SelectItem>
-                      <SelectItem value="external">External</SelectItem>
-                      <SelectItem value="supplier">Supplier</SelectItem>
-                    </SelectContent>
+                    <SelectContent><SelectItem value="internal">Internal</SelectItem><SelectItem value="external">External</SelectItem><SelectItem value="supplier">Supplier</SelectItem></SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2"><Label>Standard</Label><Input value={form.standard} onChange={(e) => setForm({ ...form, standard: e.target.value })} placeholder="BRCGS, SQF, ISO..." /></div>
@@ -86,41 +94,39 @@ const AuditList = () => {
         </Dialog>
       </div>
 
+      <TableFilters
+        search={search} onSearchChange={setSearch}
+        searchPlaceholder="Search by ID, title, or standard..."
+        filters={[
+          { key: "status", label: "Status", options: [{ value: "scheduled", label: "Scheduled" }, { value: "in_progress", label: "In Progress" }, { value: "completed", label: "Completed" }, { value: "cancelled", label: "Cancelled" }] },
+          { key: "type", label: "Type", options: [{ value: "internal", label: "Internal" }, { value: "external", label: "External" }, { value: "supplier", label: "Supplier" }] },
+        ]}
+        filterValues={filters}
+        onFilterChange={(k, v) => setFilters(f => ({ ...f, [k]: v }))}
+        resultCount={filtered.length}
+      />
+
       <div className="data-card p-0 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Standard</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Scheduled</TableHead>
-              <TableHead>Score</TableHead>
+              <TableHead>ID</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Standard</TableHead>
+              <TableHead>Status</TableHead><TableHead>Scheduled</TableHead><TableHead>Score</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-            ) : audits.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No audits scheduled</TableCell></TableRow>
-            ) : audits.map((a) => (
+            ) : filtered.length === 0 ? (
+              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No audits found</TableCell></TableRow>
+            ) : filtered.map((a) => (
               <TableRow key={a.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/audits/${a.id}`)}>
                 <TableCell className="font-mono text-sm">{a.audit_number}</TableCell>
                 <TableCell>{a.title}</TableCell>
                 <TableCell><span className="text-xs uppercase font-semibold">{a.audit_type}</span></TableCell>
                 <TableCell className="text-sm">{a.standard ?? "—"}</TableCell>
                 <TableCell><span className={`status-badge ${STATUS_COLORS[a.status] ?? ""}`}>{a.status.replace(/_/g, " ")}</span></TableCell>
-                <TableCell className="text-sm">
-                  {a.scheduled_date ? (
-                    <span>
-                      {format(new Date(a.scheduled_date), "PP")}
-                      {new Date(a.scheduled_date) > new Date() && (
-                        <span className="text-muted-foreground ml-1">({formatDistanceToNow(new Date(a.scheduled_date))})</span>
-                      )}
-                    </span>
-                  ) : "—"}
-                </TableCell>
+                <TableCell className="text-sm">{a.scheduled_date ? (<span>{format(new Date(a.scheduled_date), "PP")}{new Date(a.scheduled_date) > new Date() && <span className="text-muted-foreground ml-1">({formatDistanceToNow(new Date(a.scheduled_date))})</span>}</span>) : "—"}</TableCell>
                 <TableCell className="font-mono">{a.score != null ? `${a.score}%` : "—"}</TableCell>
               </TableRow>
             ))}
