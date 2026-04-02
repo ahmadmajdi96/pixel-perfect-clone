@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Shield, Settings, UserPlus, Trash2 } from "lucide-react";
+import { TableFilters } from "@/components/TableFilters";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Constants } from "@/integrations/supabase/types";
