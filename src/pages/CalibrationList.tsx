@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { TableFilters } from "@/components/TableFilters";
 const STATUS_COLORS: Record<string, string> = { in_calibration: "bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]", due_soon: "bg-severity-medium/15 text-severity-medium border border-severity-medium/30", overdue: "bg-severity-critical/15 text-severity-critical border border-severity-critical/30", out_of_service: "bg-severity-critical/15 text-severity-critical border border-severity-critical/30" };
 
 const CalibrationList = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [instruments, setInstruments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,7 @@ const CalibrationList = () => {
             ) : filtered.map((inst) => {
               const cs = getComputedStatus(inst);
               return (
-                <TableRow key={inst.id}>
+                <TableRow key={inst.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/calibration/${inst.id}`)}>
                   <TableCell className="font-mono text-sm">{inst.instrument_id}</TableCell>
                   <TableCell>{inst.name}</TableCell>
                   <TableCell className="text-sm">{inst.type ?? "—"}</TableCell>

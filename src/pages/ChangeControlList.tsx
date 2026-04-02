@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import { TableFilters } from "@/components/TableFilters";
 const STATUS_COLORS: Record<string, string> = { initiated: "bg-primary/15 text-primary border border-primary/30", risk_assessment: "bg-severity-medium/15 text-severity-medium border border-severity-medium/30", pending_approval: "bg-severity-high/15 text-severity-high border border-severity-high/30", approved: "bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]", implementing: "bg-primary/15 text-primary border border-primary/30", effectiveness_check: "bg-severity-medium/15 text-severity-medium border border-severity-medium/30", closed: "bg-muted text-muted-foreground border border-border", rejected: "bg-severity-critical/15 text-severity-critical border border-severity-critical/30" };
 
 const ChangeControlList = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [changes, setChanges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,7 @@ const ChangeControlList = () => {
             {loading ? (<TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (<TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No change requests</TableCell></TableRow>
             ) : filtered.map((c) => (
-              <TableRow key={c.id}>
+              <TableRow key={c.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/change-control/${c.id}`)}>
                 <TableCell className="font-mono text-sm">{c.change_number}</TableCell>
                 <TableCell>{c.title}</TableCell>
                 <TableCell><span className="text-xs uppercase font-semibold">{c.change_type}</span></TableCell>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { TableFilters } from "@/components/TableFilters";
 const STATUS_COLORS: Record<string, string> = { pending: "bg-severity-medium/15 text-severity-medium border border-severity-medium/30", in_progress: "bg-primary/15 text-primary border border-primary/30", accepted: "bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]", rejected: "bg-severity-critical/15 text-severity-critical border border-severity-critical/30", conditional: "bg-severity-high/15 text-severity-high border border-severity-high/30", hold_pending_lims: "bg-muted text-muted-foreground border border-border" };
 
 const IncomingInspectionList = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [inspections, setInspections] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -94,7 +96,7 @@ const IncomingInspectionList = () => {
             {loading ? (<TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (<TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No inspections</TableCell></TableRow>
             ) : filtered.map((ins) => (
-              <TableRow key={ins.id}>
+              <TableRow key={ins.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/incoming-inspection/${ins.id}`)}>
                 <TableCell className="font-mono text-sm">{ins.inspection_number}</TableCell>
                 <TableCell>{ins.ingredient}</TableCell>
                 <TableCell className="text-sm">{(ins.suppliers as any)?.name ?? "—"}</TableCell>

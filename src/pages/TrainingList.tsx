@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { TableFilters } from "@/components/TableFilters";
 const RESULT_COLORS: Record<string, string> = { pass: "bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]", fail: "bg-severity-critical/15 text-severity-critical border border-severity-critical/30", pending: "bg-severity-medium/15 text-severity-medium border border-severity-medium/30" };
 
 const TrainingList = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +101,7 @@ const TrainingList = () => {
             {loading ? (<TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (<TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No training records</TableCell></TableRow>
             ) : filtered.map((r) => (
-              <TableRow key={r.id}>
+              <TableRow key={r.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/training/${r.id}`)}>
                 <TableCell className="font-medium">{r.employee_name}</TableCell>
                 <TableCell>{r.topic}</TableCell>
                 <TableCell className="text-sm">{format(new Date(r.training_date), "PP")}</TableCell>

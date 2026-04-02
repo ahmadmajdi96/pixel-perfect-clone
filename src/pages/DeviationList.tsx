@@ -130,7 +130,7 @@ const DeviationList = () => {
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No deviations found</TableCell></TableRow>
             ) : filtered.map((d) => (
-              <TableRow key={d.id} className="cursor-pointer hover:bg-secondary/50">
+              <TableRow key={d.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/deviations/${d.id}`)}>
                 <TableCell className="font-mono text-sm">{d.deviation_number}</TableCell>
                 <TableCell>{d.title}</TableCell>
                 <TableCell><span className="text-xs uppercase font-semibold">{d.type}</span></TableCell>
