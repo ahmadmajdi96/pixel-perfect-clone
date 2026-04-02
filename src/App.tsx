@@ -25,6 +25,10 @@ import DocumentList from "./pages/DocumentList";
 import CalibrationList from "./pages/CalibrationList";
 import TrainingList from "./pages/TrainingList";
 import RiskRegister from "./pages/RiskRegister";
+import AllergenControl from "./pages/AllergenControl";
+import TraceabilityRecall from "./pages/TraceabilityRecall";
+import ReportsHub from "./pages/ReportsHub";
+import Administration from "./pages/Administration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
