@@ -225,7 +225,7 @@ const EnvironmentalMonitoring = () => {
                 <TableHead>Surface</TableHead><TableHead>Test</TableHead><TableHead>Frequency</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {points.map(p => (
+                {filteredPoints.map(p => (
                   <TableRow key={p.id}>
                     <TableCell className="font-mono">{p.point_code}</TableCell>
                     <TableCell>{p.emp_zones?.zone_name || "—"}</TableCell>
@@ -235,7 +235,7 @@ const EnvironmentalMonitoring = () => {
                     <TableCell>{p.frequency}</TableCell>
                   </TableRow>
                 ))}
-                {points.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No sampling points</TableCell></TableRow>}
+                {filteredPoints.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No sampling points found</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>
