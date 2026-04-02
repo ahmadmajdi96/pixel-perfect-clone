@@ -37,6 +37,7 @@ const AllergenControl = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     product_name: "", product_code: "",
     contains: [] as string[], may_contain: [] as string[], free_from: [] as string[],
