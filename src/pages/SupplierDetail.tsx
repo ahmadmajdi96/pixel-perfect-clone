@@ -1,11 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SupplierStatusBadge } from "@/components/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowLeft, Upload, Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
@@ -13,10 +19,22 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
 const SupplierDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [supplier, setSupplier] = useState<any>(null);
   const [scorecards, setScorecards] = useState<any[]>([]);
   const [coas, setCoas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coaDialogOpen, setCoaDialogOpen] = useState(false);
+  const [scorecardDialogOpen, setScorecardDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [coaForm, setCoaForm] = useState({ ingredient: "", lot_number: "", issue_date: "", expiry_date: "" });
+  const [coaFile, setCoaFile] = useState<File | null>(null);
+  const [scorecardForm, setScorecardForm] = useState({
+    period: "", quality_score: "0", delivery_score: "0", documentation_score: "0",
+    responsiveness_score: "0", compliance_score: "0", notes: "",
+  });
 
   useEffect(() => { fetchData(); }, [id]);
 
@@ -36,6 +54,66 @@ const SupplierDetail = () => {
     const { error } = await supabase.from("suppliers").update({ status }).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success(`Supplier ${status}`);
+    fetchData();
+  };
+
+  const uploadCoa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUploading(true);
+    let documentUrl: string | null = null;
+
+    if (coaFile) {
+      const ext = coaFile.name.split(".").pop();
+      const path = `${id}/${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage
+        .from("supplier-coa-documents")
+        .upload(path, coaFile);
+      if (uploadErr) { toast.error(uploadErr.message); setUploading(false); return; }
+      const { data: urlData } = supabase.storage.from("supplier-coa-documents").getPublicUrl(path);
+      documentUrl = urlData.publicUrl;
+    }
+
+    const { error } = await supabase.from("supplier_coas").insert({
+      supplier_id: id,
+      ingredient: coaForm.ingredient,
+      lot_number: coaForm.lot_number || null,
+      issue_date: coaForm.issue_date || null,
+      expiry_date: coaForm.expiry_date || null,
+      document_url: documentUrl,
+      uploaded_by: user?.id,
+    });
+    if (error) { toast.error(error.message); setUploading(false); return; }
+    toast.success("COA uploaded");
+    setCoaDialogOpen(false);
+    setCoaForm({ ingredient: "", lot_number: "", issue_date: "", expiry_date: "" });
+    setCoaFile(null);
+    setUploading(false);
+    fetchData();
+  };
+
+  const addScorecard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const scores = {
+      quality_score: Number(scorecardForm.quality_score),
+      delivery_score: Number(scorecardForm.delivery_score),
+      documentation_score: Number(scorecardForm.documentation_score),
+      responsiveness_score: Number(scorecardForm.responsiveness_score),
+      compliance_score: Number(scorecardForm.compliance_score),
+    };
+    const overall = Object.values(scores).reduce((a, b) => a + b, 0) / 5;
+
+    const { error } = await supabase.from("supplier_scorecards").insert({
+      supplier_id: id,
+      period: scorecardForm.period,
+      ...scores,
+      overall_score: Math.round(overall * 10) / 10,
+      notes: scorecardForm.notes || null,
+      scored_by: user?.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Scorecard added");
+    setScorecardDialogOpen(false);
+    setScorecardForm({ period: "", quality_score: "0", delivery_score: "0", documentation_score: "0", responsiveness_score: "0", compliance_score: "0", notes: "" });
     fetchData();
   };
 
@@ -90,8 +168,45 @@ const SupplierDetail = () => {
 
           {/* COA Library */}
           <div className="data-card p-0 overflow-hidden">
-            <div className="p-4 pb-0">
-              <h3 className="metric-label mb-4">COA / Specification Library</h3>
+            <div className="p-4 flex items-center justify-between">
+              <h3 className="metric-label">COA / Specification Library</h3>
+              <Dialog open={coaDialogOpen} onOpenChange={setCoaDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline"><Upload className="mr-2 h-3 w-3" />Upload COA</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Upload Certificate of Analysis</DialogTitle></DialogHeader>
+                  <form onSubmit={uploadCoa} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Ingredient *</Label>
+                      <Input value={coaForm.ingredient} onChange={(e) => setCoaForm({ ...coaForm, ingredient: e.target.value })} required />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Lot Number</Label>
+                        <Input value={coaForm.lot_number} onChange={(e) => setCoaForm({ ...coaForm, lot_number: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Document</Label>
+                        <Input type="file" ref={fileInputRef} onChange={(e) => setCoaFile(e.target.files?.[0] || null)} accept=".pdf,.doc,.docx,.jpg,.png" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Issue Date</Label>
+                        <Input type="date" value={coaForm.issue_date} onChange={(e) => setCoaForm({ ...coaForm, issue_date: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Expiry Date</Label>
+                        <Input type="date" value={coaForm.expiry_date} onChange={(e) => setCoaForm({ ...coaForm, expiry_date: e.target.value })} />
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={uploading}>
+                      {uploading ? "Uploading..." : "Upload COA"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
             <Table>
               <TableHeader>
@@ -101,11 +216,12 @@ const SupplierDetail = () => {
                   <TableHead>Status</TableHead>
                   <TableHead>Issue Date</TableHead>
                   <TableHead>Expiry</TableHead>
+                  <TableHead>Doc</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {coas.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground">No COAs uploaded</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No COAs uploaded</TableCell></TableRow>
                 ) : coas.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell>{c.ingredient}</TableCell>
@@ -113,6 +229,13 @@ const SupplierDetail = () => {
                     <TableCell className="capitalize">{c.status}</TableCell>
                     <TableCell>{c.issue_date ? format(new Date(c.issue_date), "PP") : "—"}</TableCell>
                     <TableCell>{c.expiry_date ? format(new Date(c.expiry_date), "PP") : "—"}</TableCell>
+                    <TableCell>
+                      {c.document_url ? (
+                        <a href={c.document_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                          <FileText className="h-4 w-4" />
+                        </a>
+                      ) : "—"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -121,8 +244,45 @@ const SupplierDetail = () => {
 
           {/* Scorecard History */}
           <div className="data-card p-0 overflow-hidden">
-            <div className="p-4 pb-0">
-              <h3 className="metric-label mb-4">Scorecard History</h3>
+            <div className="p-4 flex items-center justify-between">
+              <h3 className="metric-label">Scorecard History</h3>
+              <Dialog open={scorecardDialogOpen} onOpenChange={setScorecardDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline"><Plus className="mr-2 h-3 w-3" />Add Scorecard</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Add Performance Scorecard</DialogTitle></DialogHeader>
+                  <form onSubmit={addScorecard} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Period *</Label>
+                      <Input value={scorecardForm.period} onChange={(e) => setScorecardForm({ ...scorecardForm, period: e.target.value })} placeholder="e.g. Q1 2026" required />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { key: "quality_score", label: "Quality (0-100)" },
+                        { key: "delivery_score", label: "Delivery (0-100)" },
+                        { key: "documentation_score", label: "Documentation (0-100)" },
+                        { key: "responsiveness_score", label: "Responsiveness (0-100)" },
+                        { key: "compliance_score", label: "Compliance (0-100)" },
+                      ].map(({ key, label }) => (
+                        <div key={key} className="space-y-1">
+                          <Label className="text-xs">{label}</Label>
+                          <Input
+                            type="number" min="0" max="100"
+                            value={scorecardForm[key as keyof typeof scorecardForm]}
+                            onChange={(e) => setScorecardForm({ ...scorecardForm, [key]: e.target.value })}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Notes</Label>
+                      <Textarea value={scorecardForm.notes} onChange={(e) => setScorecardForm({ ...scorecardForm, notes: e.target.value })} />
+                    </div>
+                    <Button type="submit" className="w-full">Add Scorecard</Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
             <Table>
               <TableHeader>
