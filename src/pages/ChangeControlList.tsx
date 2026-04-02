@@ -90,7 +90,7 @@ const ChangeControlList = () => {
             {loading ? (<TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (<TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No change requests</TableCell></TableRow>
             ) : filtered.map((c) => (
-              <TableRow key={c.id}>
+              <TableRow key={c.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/change-control/${c.id}`)}>
                 <TableCell className="font-mono text-sm">{c.change_number}</TableCell>
                 <TableCell>{c.title}</TableCell>
                 <TableCell><span className="text-xs uppercase font-semibold">{c.change_type}</span></TableCell>

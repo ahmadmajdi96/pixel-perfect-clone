@@ -96,7 +96,7 @@ const IncomingInspectionList = () => {
             {loading ? (<TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (<TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No inspections</TableCell></TableRow>
             ) : filtered.map((ins) => (
-              <TableRow key={ins.id}>
+              <TableRow key={ins.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/incoming-inspection/${ins.id}`)}>
                 <TableCell className="font-mono text-sm">{ins.inspection_number}</TableCell>
                 <TableCell>{ins.ingredient}</TableCell>
                 <TableCell className="text-sm">{(ins.suppliers as any)?.name ?? "—"}</TableCell>

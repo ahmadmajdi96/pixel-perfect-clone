@@ -107,7 +107,7 @@ const CalibrationList = () => {
             ) : filtered.map((inst) => {
               const cs = getComputedStatus(inst);
               return (
-                <TableRow key={inst.id}>
+                <TableRow key={inst.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/calibration/${inst.id}`)}>
                   <TableCell className="font-mono text-sm">{inst.instrument_id}</TableCell>
                   <TableCell>{inst.name}</TableCell>
                   <TableCell className="text-sm">{inst.type ?? "—"}</TableCell>

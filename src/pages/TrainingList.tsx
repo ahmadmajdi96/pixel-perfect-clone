@@ -101,7 +101,7 @@ const TrainingList = () => {
             {loading ? (<TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (<TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No training records</TableCell></TableRow>
             ) : filtered.map((r) => (
-              <TableRow key={r.id}>
+              <TableRow key={r.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/training/${r.id}`)}>
                 <TableCell className="font-medium">{r.employee_name}</TableCell>
                 <TableCell>{r.topic}</TableCell>
                 <TableCell className="text-sm">{format(new Date(r.training_date), "PP")}</TableCell>
