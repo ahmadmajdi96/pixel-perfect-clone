@@ -119,6 +119,28 @@ const EnvironmentalMonitoring = () => {
   const passCount = results.filter(r => r.result === "pass").length;
   const pendingCount = results.filter(r => r.result === "pending").length;
 
+  const zoneFilters = [
+    { key: "zone_type", label: "Zone Type", options: ZONE_TYPES.map(t => ({ value: t, label: t.replace("_", " ").toUpperCase() })) },
+    { key: "risk_level", label: "Risk", options: RISK_LEVELS.map(r => ({ value: r, label: r.charAt(0).toUpperCase() + r.slice(1) })) },
+  ];
+
+  const filteredZones = zones.filter(z => {
+    if (search && !z.zone_name.toLowerCase().includes(search.toLowerCase()) && !z.zone_number.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterValues.zone_type && filterValues.zone_type !== "all" && z.zone_type !== filterValues.zone_type) return false;
+    if (filterValues.risk_level && filterValues.risk_level !== "all" && z.risk_level !== filterValues.risk_level) return false;
+    return true;
+  });
+
+  const filteredPoints = points.filter(p => {
+    if (search && !p.point_code.toLowerCase().includes(search.toLowerCase()) && !(p.location_description || "").toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const filteredResults = results.filter(r => {
+    if (search && !(r.emp_sampling_points?.point_code || "").toLowerCase().includes(search.toLowerCase()) && !(r.organism_detected || "").toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
   if (loading) return <div className="p-8 text-muted-foreground">Loading...</div>;
 
   return (
