@@ -25,6 +25,10 @@ import DocumentList from "./pages/DocumentList";
 import CalibrationList from "./pages/CalibrationList";
 import TrainingList from "./pages/TrainingList";
 import RiskRegister from "./pages/RiskRegister";
+import AllergenControl from "./pages/AllergenControl";
+import TraceabilityRecall from "./pages/TraceabilityRecall";
+import ReportsHub from "./pages/ReportsHub";
+import Administration from "./pages/Administration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +71,10 @@ const App = () => (
               <Route path="/calibration" element={<CalibrationList />} />
               <Route path="/training" element={<TrainingList />} />
               <Route path="/risk" element={<RiskRegister />} />
+              <Route path="/allergens" element={<AllergenControl />} />
+              <Route path="/traceability" element={<TraceabilityRecall />} />
+              <Route path="/reports" element={<ReportsHub />} />
+              <Route path="/admin" element={<Administration />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

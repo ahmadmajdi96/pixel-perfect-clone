@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      allergen_profiles: {
+        Row: {
+          contains: string[] | null
+          created_at: string
+          created_by: string | null
+          cross_contact_notes: string | null
+          cross_contact_risk_score: number | null
+          free_from: string[] | null
+          id: string
+          label_last_verified_at: string | null
+          label_status: string
+          label_verified_by: string | null
+          may_contain: string[] | null
+          product_code: string | null
+          product_name: string
+          updated_at: string
+        }
+        Insert: {
+          contains?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          cross_contact_notes?: string | null
+          cross_contact_risk_score?: number | null
+          free_from?: string[] | null
+          id?: string
+          label_last_verified_at?: string | null
+          label_status?: string
+          label_verified_by?: string | null
+          may_contain?: string[] | null
+          product_code?: string | null
+          product_name: string
+          updated_at?: string
+        }
+        Update: {
+          contains?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          cross_contact_notes?: string | null
+          cross_contact_risk_score?: number | null
+          free_from?: string[] | null
+          id?: string
+          label_last_verified_at?: string | null
+          label_status?: string
+          label_verified_by?: string | null
+          may_contain?: string[] | null
+          product_code?: string | null
+          product_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_findings: {
         Row: {
           audit_id: string
@@ -882,6 +933,63 @@ export type Database = {
         }
         Relationships: []
       }
+      recall_exercises: {
+        Row: {
+          affected_lots: string[] | null
+          completed_at: string | null
+          created_at: string
+          exercise_type: string
+          id: string
+          initiated_at: string | null
+          initiated_by: string | null
+          notes: string | null
+          recovery_rate_pct: number | null
+          result: string | null
+          scope_description: string | null
+          status: string
+          time_to_complete_hours: number | null
+          title: string
+          trigger_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          affected_lots?: string[] | null
+          completed_at?: string | null
+          created_at?: string
+          exercise_type?: string
+          id?: string
+          initiated_at?: string | null
+          initiated_by?: string | null
+          notes?: string | null
+          recovery_rate_pct?: number | null
+          result?: string | null
+          scope_description?: string | null
+          status?: string
+          time_to_complete_hours?: number | null
+          title: string
+          trigger_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          affected_lots?: string[] | null
+          completed_at?: string | null
+          created_at?: string
+          exercise_type?: string
+          id?: string
+          initiated_at?: string | null
+          initiated_by?: string | null
+          notes?: string | null
+          recovery_rate_pct?: number | null
+          result?: string | null
+          scope_description?: string | null
+          status?: string
+          time_to_complete_hours?: number | null
+          title?: string
+          trigger_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       risk_register: {
         Row: {
           category: string
@@ -1092,6 +1200,60 @@ export type Database = {
           next_requalification_date?: string | null
           notes?: string | null
           status?: Database["public"]["Enums"]["supplier_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      traceability_lots: {
+        Row: {
+          batch_date: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          input_lots: string[] | null
+          lot_number: string
+          notes: string | null
+          output_lots: string[] | null
+          product_code: string | null
+          product_name: string
+          quantity: number | null
+          quantity_unit: string | null
+          status: string
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          batch_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          input_lots?: string[] | null
+          lot_number: string
+          notes?: string | null
+          output_lots?: string[] | null
+          product_code?: string | null
+          product_name: string
+          quantity?: number | null
+          quantity_unit?: string | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          batch_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          input_lots?: string[] | null
+          lot_number?: string
+          notes?: string | null
+          output_lots?: string[] | null
+          product_code?: string | null
+          product_name?: string
+          quantity?: number | null
+          quantity_unit?: string | null
+          status?: string
+          supplier_id?: string | null
           updated_at?: string
         }
         Relationships: []
