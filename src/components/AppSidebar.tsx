@@ -17,6 +17,7 @@ import {
   GitBranch,
   BarChart3,
   Settings,
+  Microscope,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -45,6 +46,7 @@ const qualityNav = [
   { title: "Suppliers", url: "/suppliers", icon: Truck },
   { title: "Audits", url: "/audits", icon: ClipboardList },
   { title: "Traceability", url: "/traceability", icon: GitBranch },
+  { title: "EMP", url: "/environmental-monitoring", icon: Microscope },
 ];
 
 const systemNav = [

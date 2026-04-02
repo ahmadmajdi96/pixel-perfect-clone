@@ -29,6 +29,7 @@ import AllergenControl from "./pages/AllergenControl";
 import TraceabilityRecall from "./pages/TraceabilityRecall";
 import ReportsHub from "./pages/ReportsHub";
 import Administration from "./pages/Administration";
+import EnvironmentalMonitoring from "./pages/EnvironmentalMonitoring";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="/traceability" element={<TraceabilityRecall />} />
               <Route path="/reports" element={<ReportsHub />} />
               <Route path="/admin" element={<Administration />} />
+              <Route path="/environmental-monitoring" element={<EnvironmentalMonitoring />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

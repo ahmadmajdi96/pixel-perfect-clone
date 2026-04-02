@@ -778,6 +778,139 @@ export type Database = {
         }
         Relationships: []
       }
+      emp_sample_results: {
+        Row: {
+          cfu_count: number | null
+          corrective_action: string | null
+          corrective_action_status: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          organism_detected: string | null
+          result: string
+          sample_date: string
+          sampled_by: string | null
+          sampling_point_id: string
+        }
+        Insert: {
+          cfu_count?: number | null
+          corrective_action?: string | null
+          corrective_action_status?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organism_detected?: string | null
+          result?: string
+          sample_date?: string
+          sampled_by?: string | null
+          sampling_point_id: string
+        }
+        Update: {
+          cfu_count?: number | null
+          corrective_action?: string | null
+          corrective_action_status?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organism_detected?: string | null
+          result?: string
+          sample_date?: string
+          sampled_by?: string | null
+          sampling_point_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emp_sample_results_sampling_point_id_fkey"
+            columns: ["sampling_point_id"]
+            isOneToOne: false
+            referencedRelation: "emp_sampling_points"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emp_sampling_points: {
+        Row: {
+          created_at: string
+          frequency: string
+          id: string
+          location_description: string | null
+          point_code: string
+          status: string
+          surface_type: string | null
+          test_type: string
+          updated_at: string
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string
+          frequency?: string
+          id?: string
+          location_description?: string | null
+          point_code: string
+          status?: string
+          surface_type?: string | null
+          test_type?: string
+          updated_at?: string
+          zone_id: string
+        }
+        Update: {
+          created_at?: string
+          frequency?: string
+          id?: string
+          location_description?: string | null
+          point_code?: string
+          status?: string
+          surface_type?: string | null
+          test_type?: string
+          updated_at?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emp_sampling_points_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "emp_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emp_zones: {
+        Row: {
+          area_description: string | null
+          created_at: string
+          id: string
+          risk_level: string
+          status: string
+          updated_at: string
+          zone_name: string
+          zone_number: string
+          zone_type: string
+        }
+        Insert: {
+          area_description?: string | null
+          created_at?: string
+          id?: string
+          risk_level?: string
+          status?: string
+          updated_at?: string
+          zone_name: string
+          zone_number: string
+          zone_type?: string
+        }
+        Update: {
+          area_description?: string | null
+          created_at?: string
+          id?: string
+          risk_level?: string
+          status?: string
+          updated_at?: string
+          zone_name?: string
+          zone_number?: string
+          zone_type?: string
+        }
+        Relationships: []
+      }
       haccp_ccps: {
         Row: {
           ccp_number: string
