@@ -9,8 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, ShieldCheck, AlertTriangle, Search } from "lucide-react";
+import { Plus, ShieldCheck, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { TableFilters } from "@/components/TableFilters";
 
 const COMMON_ALLERGENS = [
   "Milk", "Eggs", "Fish", "Crustacean Shellfish", "Tree Nuts", "Peanuts",
