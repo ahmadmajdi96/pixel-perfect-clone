@@ -199,7 +199,8 @@ const RiskRegister = () => {
                   ) : "—"}
                 </TableCell>
               </TableRow>
-            ))}
+              ));
+            })()}
           </TableBody>
         </Table>
       </div>

@@ -2,24 +2,25 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SupplierStatusBadge } from "@/components/StatusBadge";
-import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SupplierStatusBadge } from "@/components/StatusBadge";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { TableFilters } from "@/components/TableFilters";
 
 const SupplierList = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<Record<string, string>>({ status: "all" });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ name: "", code: "", contact_name: "", contact_email: "", categories: "", country: "", notes: "" });
 
@@ -32,23 +33,14 @@ const SupplierList = () => {
   };
 
   const filtered = suppliers.filter((s) => {
-    if (statusFilter !== "all" && s.status !== statusFilter) return false;
-    if (search && !s.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filters.status !== "all" && s.status !== filters.status) return false;
+    if (search) { const q = search.toLowerCase(); return s.name.toLowerCase().includes(q) || (s.code ?? "").toLowerCase().includes(q) || (s.country ?? "").toLowerCase().includes(q) || (s.contact_name ?? "").toLowerCase().includes(q); }
     return true;
   });
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from("suppliers").insert({
-      name: form.name,
-      code: form.code || null,
-      contact_name: form.contact_name || null,
-      contact_email: form.contact_email || null,
-      categories: form.categories ? form.categories.split(",").map((c) => c.trim()) : [],
-      country: form.country || null,
-      notes: form.notes || null,
-      created_by: user?.id,
-    });
+    const { error } = await supabase.from("suppliers").insert({ name: form.name, code: form.code || null, contact_name: form.contact_name || null, contact_email: form.contact_email || null, categories: form.categories ? form.categories.split(",").map((c) => c.trim()) : [], country: form.country || null, notes: form.notes || null, created_by: user?.id });
     if (error) { toast.error(error.message); return; }
     toast.success("Supplier added");
     setDialogOpen(false);
@@ -59,14 +51,9 @@ const SupplierList = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Supplier Quality</h1>
-          <p className="metric-label mt-1">Manage supplier directory and qualifications</p>
-        </div>
+        <div><h1 className="text-2xl font-bold">Supplier Quality</h1><p className="metric-label mt-1">Manage supplier directory and qualifications</p></div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" />Add Supplier</Button>
-          </DialogTrigger>
+          <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />Add Supplier</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Add New Supplier</DialogTitle></DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
@@ -89,50 +76,27 @@ const SupplierList = () => {
         </Dialog>
       </div>
 
-      <div className="flex gap-3">
-        <Input placeholder="Search suppliers..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="conditional">Conditional</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <TableFilters search={search} onSearchChange={setSearch} searchPlaceholder="Search by name, code, country, or contact..."
+        filters={[{ key: "status", label: "Status", options: [{ value: "approved", label: "Approved" }, { value: "conditional", label: "Conditional" }, { value: "suspended", label: "Suspended" }, { value: "rejected", label: "Rejected" }, { value: "pending", label: "Pending" }] }]}
+        filterValues={filters} onFilterChange={(k, v) => setFilters(f => ({ ...f, [k]: v }))} resultCount={filtered.length}
+      />
 
       <div className="data-card p-0 overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Code</TableHead>
-              <TableHead>Categories</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Contact</TableHead>
-            </TableRow>
-          </TableHeader>
+          <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Code</TableHead><TableHead>Categories</TableHead><TableHead>Status</TableHead><TableHead>Country</TableHead><TableHead>Contact</TableHead></TableRow></TableHeader>
           <TableBody>
-            {loading ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-            ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No suppliers found</TableCell></TableRow>
-            ) : (
-              filtered.map((s) => (
-                <TableRow key={s.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/suppliers/${s.id}`)}>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="font-mono text-sm">{s.code ?? "—"}</TableCell>
-                  <TableCell className="text-sm">{(s.categories ?? []).join(", ") || "—"}</TableCell>
-                  <TableCell><SupplierStatusBadge status={s.status} /></TableCell>
-                  <TableCell className="text-sm">{s.country ?? "—"}</TableCell>
-                  <TableCell className="text-sm">{s.contact_name ?? "—"}</TableCell>
-                </TableRow>
-              ))
-            )}
+            {loading ? (<TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+            ) : filtered.length === 0 ? (<TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No suppliers found</TableCell></TableRow>
+            ) : filtered.map((s) => (
+              <TableRow key={s.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/suppliers/${s.id}`)}>
+                <TableCell className="font-medium">{s.name}</TableCell>
+                <TableCell className="font-mono text-sm">{s.code ?? "—"}</TableCell>
+                <TableCell className="text-sm">{(s.categories ?? []).join(", ") || "—"}</TableCell>
+                <TableCell><SupplierStatusBadge status={s.status} /></TableCell>
+                <TableCell className="text-sm">{s.country ?? "—"}</TableCell>
+                <TableCell className="text-sm">{s.contact_name ?? "—"}</TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
