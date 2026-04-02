@@ -14,6 +14,212 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_findings: {
+        Row: {
+          audit_id: string
+          capa_id: string | null
+          category: string | null
+          closed_at: string | null
+          corrective_action: string | null
+          created_at: string
+          description: string
+          evidence: string | null
+          finding_number: number
+          id: string
+          severity: string
+          status: string
+        }
+        Insert: {
+          audit_id: string
+          capa_id?: string | null
+          category?: string | null
+          closed_at?: string | null
+          corrective_action?: string | null
+          created_at?: string
+          description: string
+          evidence?: string | null
+          finding_number?: number
+          id?: string
+          severity?: string
+          status?: string
+        }
+        Update: {
+          audit_id?: string
+          capa_id?: string | null
+          category?: string | null
+          closed_at?: string | null
+          corrective_action?: string | null
+          created_at?: string
+          description?: string
+          evidence?: string | null
+          finding_number?: number
+          id?: string
+          severity?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_findings_audit_id_fkey"
+            columns: ["audit_id"]
+            isOneToOne: false
+            referencedRelation: "audits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_findings_capa_id_fkey"
+            columns: ["capa_id"]
+            isOneToOne: false
+            referencedRelation: "capas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audits: {
+        Row: {
+          audit_number: string
+          audit_type: Database["public"]["Enums"]["audit_type"]
+          completed_date: string | null
+          created_at: string
+          id: string
+          lead_auditor_id: string | null
+          scheduled_date: string | null
+          scope: string | null
+          score: number | null
+          standard: string | null
+          status: Database["public"]["Enums"]["audit_status"]
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audit_number?: string
+          audit_type?: Database["public"]["Enums"]["audit_type"]
+          completed_date?: string | null
+          created_at?: string
+          id?: string
+          lead_auditor_id?: string | null
+          scheduled_date?: string | null
+          scope?: string | null
+          score?: number | null
+          standard?: string | null
+          status?: Database["public"]["Enums"]["audit_status"]
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audit_number?: string
+          audit_type?: Database["public"]["Enums"]["audit_type"]
+          completed_date?: string | null
+          created_at?: string
+          id?: string
+          lead_auditor_id?: string | null
+          scheduled_date?: string | null
+          scope?: string | null
+          score?: number | null
+          standard?: string | null
+          status?: Database["public"]["Enums"]["audit_status"]
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      calibration_instruments: {
+        Row: {
+          calibration_frequency_days: number | null
+          created_at: string
+          id: string
+          instrument_id: string
+          last_calibration_date: string | null
+          location: string | null
+          manufacturer: string | null
+          model: string | null
+          name: string
+          next_calibration_due: string | null
+          serial_number: string | null
+          status: Database["public"]["Enums"]["calibration_status"]
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          calibration_frequency_days?: number | null
+          created_at?: string
+          id?: string
+          instrument_id: string
+          last_calibration_date?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          next_calibration_due?: string | null
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["calibration_status"]
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          calibration_frequency_days?: number | null
+          created_at?: string
+          id?: string
+          instrument_id?: string
+          last_calibration_date?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          next_calibration_due?: string | null
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["calibration_status"]
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      calibration_records: {
+        Row: {
+          calibrated_by: string | null
+          calibration_date: string
+          certificate_reference: string | null
+          created_at: string
+          id: string
+          instrument_id: string
+          next_due_date: string | null
+          notes: string | null
+          result: Database["public"]["Enums"]["calibration_result"]
+        }
+        Insert: {
+          calibrated_by?: string | null
+          calibration_date?: string
+          certificate_reference?: string | null
+          created_at?: string
+          id?: string
+          instrument_id: string
+          next_due_date?: string | null
+          notes?: string | null
+          result: Database["public"]["Enums"]["calibration_result"]
+        }
+        Update: {
+          calibrated_by?: string | null
+          calibration_date?: string
+          certificate_reference?: string | null
+          created_at?: string
+          id?: string
+          instrument_id?: string
+          next_due_date?: string | null
+          notes?: string | null
+          result?: Database["public"]["Enums"]["calibration_result"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calibration_records_instrument_id_fkey"
+            columns: ["instrument_id"]
+            isOneToOne: false
+            referencedRelation: "calibration_instruments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       capa_actions: {
         Row: {
           action_type: string
@@ -168,6 +374,122 @@ export type Database = {
         }
         Relationships: []
       }
+      ccp_monitoring_records: {
+        Row: {
+          ccp_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          recorded_by: string | null
+          value: number
+          within_limits: boolean
+        }
+        Insert: {
+          ccp_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          value: number
+          within_limits?: boolean
+        }
+        Update: {
+          ccp_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          value?: number
+          within_limits?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ccp_monitoring_records_ccp_id_fkey"
+            columns: ["ccp_id"]
+            isOneToOne: false
+            referencedRelation: "haccp_ccps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      change_requests: {
+        Row: {
+          approved_by: string[] | null
+          approver_ids: string[] | null
+          change_number: string
+          change_type: Database["public"]["Enums"]["change_type"]
+          closed_at: string | null
+          created_at: string
+          description: string | null
+          effectiveness_date: string | null
+          effectiveness_result: string | null
+          food_safety_impact: string | null
+          id: string
+          implemented_at: string | null
+          implemented_by: string | null
+          initiator_id: string | null
+          operational_impact: string | null
+          quality_impact: string | null
+          reason: string | null
+          regulatory_impact: string | null
+          risk_level: string | null
+          status: Database["public"]["Enums"]["change_status"]
+          target_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string[] | null
+          approver_ids?: string[] | null
+          change_number?: string
+          change_type?: Database["public"]["Enums"]["change_type"]
+          closed_at?: string | null
+          created_at?: string
+          description?: string | null
+          effectiveness_date?: string | null
+          effectiveness_result?: string | null
+          food_safety_impact?: string | null
+          id?: string
+          implemented_at?: string | null
+          implemented_by?: string | null
+          initiator_id?: string | null
+          operational_impact?: string | null
+          quality_impact?: string | null
+          reason?: string | null
+          regulatory_impact?: string | null
+          risk_level?: string | null
+          status?: Database["public"]["Enums"]["change_status"]
+          target_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string[] | null
+          approver_ids?: string[] | null
+          change_number?: string
+          change_type?: Database["public"]["Enums"]["change_type"]
+          closed_at?: string | null
+          created_at?: string
+          description?: string | null
+          effectiveness_date?: string | null
+          effectiveness_result?: string | null
+          food_safety_impact?: string | null
+          id?: string
+          implemented_at?: string | null
+          implemented_by?: string | null
+          initiator_id?: string | null
+          operational_impact?: string | null
+          quality_impact?: string | null
+          reason?: string | null
+          regulatory_impact?: string | null
+          risk_level?: string | null
+          status?: Database["public"]["Enums"]["change_status"]
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       complaint_investigations: {
         Row: {
           complaint_id: string
@@ -286,6 +608,253 @@ export type Database = {
           },
         ]
       }
+      deviations: {
+        Row: {
+          batch_affected: string | null
+          capa_id: string | null
+          closed_at: string | null
+          created_at: string
+          description: string | null
+          deviation_number: string
+          disposition: string | null
+          id: string
+          investigation_notes: string | null
+          product_affected: string | null
+          reported_by: string | null
+          severity: Database["public"]["Enums"]["deviation_severity"]
+          source: string | null
+          status: Database["public"]["Enums"]["deviation_status"]
+          title: string
+          type: Database["public"]["Enums"]["deviation_type"]
+          updated_at: string
+        }
+        Insert: {
+          batch_affected?: string | null
+          capa_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          description?: string | null
+          deviation_number?: string
+          disposition?: string | null
+          id?: string
+          investigation_notes?: string | null
+          product_affected?: string | null
+          reported_by?: string | null
+          severity?: Database["public"]["Enums"]["deviation_severity"]
+          source?: string | null
+          status?: Database["public"]["Enums"]["deviation_status"]
+          title: string
+          type?: Database["public"]["Enums"]["deviation_type"]
+          updated_at?: string
+        }
+        Update: {
+          batch_affected?: string | null
+          capa_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          description?: string | null
+          deviation_number?: string
+          disposition?: string | null
+          id?: string
+          investigation_notes?: string | null
+          product_affected?: string | null
+          reported_by?: string | null
+          severity?: Database["public"]["Enums"]["deviation_severity"]
+          source?: string | null
+          status?: Database["public"]["Enums"]["deviation_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["deviation_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deviations_capa_id_fkey"
+            columns: ["capa_id"]
+            isOneToOne: false
+            referencedRelation: "capas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          content: string | null
+          created_at: string
+          created_by: string | null
+          doc_type: Database["public"]["Enums"]["document_type"]
+          file_url: string | null
+          id: string
+          linked_entities: string[] | null
+          status: Database["public"]["Enums"]["document_status"]
+          superseded_at: string | null
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_type?: Database["public"]["Enums"]["document_type"]
+          file_url?: string | null
+          id?: string
+          linked_entities?: string[] | null
+          status?: Database["public"]["Enums"]["document_status"]
+          superseded_at?: string | null
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_type?: Database["public"]["Enums"]["document_type"]
+          file_url?: string | null
+          id?: string
+          linked_entities?: string[] | null
+          status?: Database["public"]["Enums"]["document_status"]
+          superseded_at?: string | null
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      haccp_ccps: {
+        Row: {
+          ccp_number: string
+          corrective_action_procedure: string | null
+          created_at: string
+          created_by: string | null
+          critical_limit_lower: number | null
+          critical_limit_unit: string | null
+          critical_limit_upper: number | null
+          hazard_description: string | null
+          hazard_type: string
+          id: string
+          monitoring_frequency: string | null
+          monitoring_method: string | null
+          process_step: string
+          responsible_operator: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          ccp_number: string
+          corrective_action_procedure?: string | null
+          created_at?: string
+          created_by?: string | null
+          critical_limit_lower?: number | null
+          critical_limit_unit?: string | null
+          critical_limit_upper?: number | null
+          hazard_description?: string | null
+          hazard_type?: string
+          id?: string
+          monitoring_frequency?: string | null
+          monitoring_method?: string | null
+          process_step: string
+          responsible_operator?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          ccp_number?: string
+          corrective_action_procedure?: string | null
+          created_at?: string
+          created_by?: string | null
+          critical_limit_lower?: number | null
+          critical_limit_unit?: string | null
+          critical_limit_upper?: number | null
+          hazard_description?: string | null
+          hazard_type?: string
+          id?: string
+          monitoring_frequency?: string | null
+          monitoring_method?: string | null
+          process_step?: string
+          responsible_operator?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      incoming_inspections: {
+        Row: {
+          coa_verified: boolean | null
+          created_at: string
+          disposition: string | null
+          id: string
+          ingredient: string
+          inspected_at: string | null
+          inspection_number: string
+          inspector_id: string | null
+          lims_required: boolean | null
+          lims_result: string | null
+          lot_code: string | null
+          notes: string | null
+          physical_check_passed: boolean | null
+          quantity: number | null
+          quantity_unit: string | null
+          status: Database["public"]["Enums"]["inspection_status"]
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          coa_verified?: boolean | null
+          created_at?: string
+          disposition?: string | null
+          id?: string
+          ingredient: string
+          inspected_at?: string | null
+          inspection_number?: string
+          inspector_id?: string | null
+          lims_required?: boolean | null
+          lims_result?: string | null
+          lot_code?: string | null
+          notes?: string | null
+          physical_check_passed?: boolean | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          status?: Database["public"]["Enums"]["inspection_status"]
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          coa_verified?: boolean | null
+          created_at?: string
+          disposition?: string | null
+          id?: string
+          ingredient?: string
+          inspected_at?: string | null
+          inspection_number?: string
+          inspector_id?: string | null
+          lims_required?: boolean | null
+          lims_result?: string | null
+          lot_code?: string | null
+          notes?: string | null
+          physical_check_passed?: boolean | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          status?: Database["public"]["Enums"]["inspection_status"]
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incoming_inspections_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -310,6 +879,63 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      risk_register: {
+        Row: {
+          category: string
+          control_measures: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          likelihood: number
+          owner: string | null
+          residual_likelihood: number | null
+          residual_risk_score: number | null
+          residual_severity: number | null
+          review_date: string | null
+          risk_score: number | null
+          severity: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          control_measures?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          likelihood?: number
+          owner?: string | null
+          residual_likelihood?: number | null
+          residual_risk_score?: number | null
+          residual_severity?: number | null
+          review_date?: string | null
+          risk_score?: number | null
+          severity?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          control_measures?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          likelihood?: number
+          owner?: string | null
+          residual_likelihood?: number | null
+          residual_risk_score?: number | null
+          residual_severity?: number | null
+          review_date?: string | null
+          risk_score?: number | null
+          severity?: number
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -470,6 +1096,63 @@ export type Database = {
         }
         Relationships: []
       }
+      training_records: {
+        Row: {
+          created_at: string
+          effectiveness_assessed: boolean | null
+          effectiveness_score: number | null
+          employee_id_ref: string | null
+          employee_name: string
+          format: string | null
+          id: string
+          notes: string | null
+          qualification_expiry: string | null
+          qualification_name: string | null
+          recorded_by: string | null
+          result: Database["public"]["Enums"]["training_result"]
+          topic: string
+          trainer: string | null
+          training_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          effectiveness_assessed?: boolean | null
+          effectiveness_score?: number | null
+          employee_id_ref?: string | null
+          employee_name: string
+          format?: string | null
+          id?: string
+          notes?: string | null
+          qualification_expiry?: string | null
+          qualification_name?: string | null
+          recorded_by?: string | null
+          result?: Database["public"]["Enums"]["training_result"]
+          topic: string
+          trainer?: string | null
+          training_date?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          effectiveness_assessed?: boolean | null
+          effectiveness_score?: number | null
+          employee_id_ref?: string | null
+          employee_name?: string
+          format?: string | null
+          id?: string
+          notes?: string | null
+          qualification_expiry?: string | null
+          qualification_name?: string | null
+          recorded_by?: string | null
+          result?: Database["public"]["Enums"]["training_result"]
+          topic?: string
+          trainer?: string | null
+          training_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -513,6 +1196,14 @@ export type Database = {
         | "supplier_quality_manager"
         | "plant_manager"
         | "system_admin"
+      audit_status: "scheduled" | "in_progress" | "completed" | "cancelled"
+      audit_type: "internal" | "external" | "supplier"
+      calibration_result: "in_tolerance" | "out_of_tolerance"
+      calibration_status:
+        | "in_calibration"
+        | "due_soon"
+        | "overdue"
+        | "out_of_service"
       capa_severity: "critical" | "high" | "medium" | "low"
       capa_status:
         | "initiation"
@@ -522,6 +1213,16 @@ export type Database = {
         | "verification"
         | "effectiveness_check"
         | "closure"
+      change_status:
+        | "initiated"
+        | "risk_assessment"
+        | "pending_approval"
+        | "approved"
+        | "implementing"
+        | "effectiveness_check"
+        | "closed"
+        | "rejected"
+      change_type: "product" | "process" | "equipment" | "supplier" | "document"
       complaint_severity: "critical" | "high" | "medium" | "low"
       complaint_status: "logged" | "investigating" | "resolved" | "closed"
       complaint_type:
@@ -534,12 +1235,32 @@ export type Database = {
         | "microbiological"
         | "chemical"
         | "other"
+      deviation_severity: "critical" | "high" | "medium" | "low"
+      deviation_status: "open" | "investigating" | "dispositioned" | "closed"
+      deviation_type: "process" | "product" | "regulatory"
+      document_status: "draft" | "pending_approval" | "approved" | "superseded"
+      document_type:
+        | "food_safety_plan"
+        | "haccp_plan"
+        | "sop"
+        | "quality_plan"
+        | "specification"
+        | "prp"
+        | "ewi"
+      inspection_status:
+        | "pending"
+        | "in_progress"
+        | "accepted"
+        | "rejected"
+        | "conditional"
+        | "hold_pending_lims"
       supplier_status:
         | "approved"
         | "conditional"
         | "suspended"
         | "rejected"
         | "pending"
+      training_result: "pass" | "fail" | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -676,6 +1397,15 @@ export const Constants = {
         "plant_manager",
         "system_admin",
       ],
+      audit_status: ["scheduled", "in_progress", "completed", "cancelled"],
+      audit_type: ["internal", "external", "supplier"],
+      calibration_result: ["in_tolerance", "out_of_tolerance"],
+      calibration_status: [
+        "in_calibration",
+        "due_soon",
+        "overdue",
+        "out_of_service",
+      ],
       capa_severity: ["critical", "high", "medium", "low"],
       capa_status: [
         "initiation",
@@ -686,6 +1416,17 @@ export const Constants = {
         "effectiveness_check",
         "closure",
       ],
+      change_status: [
+        "initiated",
+        "risk_assessment",
+        "pending_approval",
+        "approved",
+        "implementing",
+        "effectiveness_check",
+        "closed",
+        "rejected",
+      ],
+      change_type: ["product", "process", "equipment", "supplier", "document"],
       complaint_severity: ["critical", "high", "medium", "low"],
       complaint_status: ["logged", "investigating", "resolved", "closed"],
       complaint_type: [
@@ -699,6 +1440,27 @@ export const Constants = {
         "chemical",
         "other",
       ],
+      deviation_severity: ["critical", "high", "medium", "low"],
+      deviation_status: ["open", "investigating", "dispositioned", "closed"],
+      deviation_type: ["process", "product", "regulatory"],
+      document_status: ["draft", "pending_approval", "approved", "superseded"],
+      document_type: [
+        "food_safety_plan",
+        "haccp_plan",
+        "sop",
+        "quality_plan",
+        "specification",
+        "prp",
+        "ewi",
+      ],
+      inspection_status: [
+        "pending",
+        "in_progress",
+        "accepted",
+        "rejected",
+        "conditional",
+        "hold_pending_lims",
+      ],
       supplier_status: [
         "approved",
         "conditional",
@@ -706,6 +1468,7 @@ export const Constants = {
         "rejected",
         "pending",
       ],
+      training_result: ["pass", "fail", "pending"],
     },
   },
 } as const
