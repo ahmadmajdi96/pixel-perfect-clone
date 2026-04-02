@@ -25,6 +25,8 @@ const RiskRegister = () => {
   const [risks, setRisks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<Record<string, string>>({ category: "all", status: "all" });
   const [form, setForm] = useState({
     category: "HACCP", description: "", likelihood: "3", severity: "3",
     control_measures: "", residual_likelihood: "2", residual_severity: "2", owner: "", review_date: "",
