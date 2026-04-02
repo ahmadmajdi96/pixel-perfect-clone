@@ -16,6 +16,7 @@ import { TableFilters } from "@/components/TableFilters";
 const STATUS_COLORS: Record<string, string> = { pending: "bg-severity-medium/15 text-severity-medium border border-severity-medium/30", in_progress: "bg-primary/15 text-primary border border-primary/30", accepted: "bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]", rejected: "bg-severity-critical/15 text-severity-critical border border-severity-critical/30", conditional: "bg-severity-high/15 text-severity-high border border-severity-high/30", hold_pending_lims: "bg-muted text-muted-foreground border border-border" };
 
 const IncomingInspectionList = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [inspections, setInspections] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
