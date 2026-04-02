@@ -70,13 +70,18 @@ const App = () => (
               <Route path="/haccp" element={<HaccpList />} />
               <Route path="/haccp/:id" element={<HaccpDetail />} />
               <Route path="/incoming-inspection" element={<IncomingInspectionList />} />
+              <Route path="/incoming-inspection/:id" element={<IncomingInspectionDetail />} />
               <Route path="/deviations" element={<DeviationList />} />
+              <Route path="/deviations/:id" element={<DeviationDetail />} />
               <Route path="/audits" element={<AuditList />} />
-              <Route path="/audits/:id" element={<AuditList />} />
+              <Route path="/audits/:id" element={<AuditDetail />} />
               <Route path="/change-control" element={<ChangeControlList />} />
+              <Route path="/change-control/:id" element={<ChangeControlDetail />} />
               <Route path="/documents" element={<DocumentList />} />
               <Route path="/calibration" element={<CalibrationList />} />
+              <Route path="/calibration/:id" element={<CalibrationDetail />} />
               <Route path="/training" element={<TrainingList />} />
+              <Route path="/training/:id" element={<TrainingDetail />} />
               <Route path="/risk" element={<RiskRegister />} />
               <Route path="/allergens" element={<AllergenControl />} />
               <Route path="/traceability" element={<TraceabilityRecall />} />
