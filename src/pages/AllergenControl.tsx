@@ -84,10 +84,19 @@ const AllergenControl = () => {
     fetchData();
   };
 
-  const filtered = profiles.filter(p =>
-    p.product_name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.product_code?.toLowerCase().includes(search.toLowerCase())
-  );
+  const allergenFilters = [
+    { key: "label_status", label: "Label Status", options: [
+      { value: "draft", label: "Draft" },
+      { value: "verified", label: "Verified" },
+      { value: "needs_review", label: "Needs Review" },
+    ]},
+  ];
+
+  const filtered = profiles.filter(p => {
+    if (search && !p.product_name?.toLowerCase().includes(search.toLowerCase()) && !p.product_code?.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterValues.label_status && filterValues.label_status !== "all" && p.label_status !== filterValues.label_status) return false;
+    return true;
+  });
 
   const stats = {
     total: profiles.length,
