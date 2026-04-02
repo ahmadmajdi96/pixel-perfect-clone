@@ -168,7 +168,7 @@ const EnvironmentalMonitoring = () => {
                   <TableRow key={z.id}>
                     <TableCell className="font-mono">{z.zone_number}</TableCell>
                     <TableCell className="font-medium">{z.zone_name}</TableCell>
-                    <TableCell><StatusBadge status={z.zone_type.replace("_", " ")} /></TableCell>
+                    <TableCell><Badge variant="outline">{z.zone_type.replace("_", " ").toUpperCase()}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{z.area_description || "—"}</TableCell>
                     <TableCell><SeverityBadge severity={z.risk_level} /></TableCell>
                     <TableCell><StatusBadge status={z.status} /></TableCell>
