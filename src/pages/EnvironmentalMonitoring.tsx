@@ -252,7 +252,7 @@ const EnvironmentalMonitoring = () => {
                 <TableHead>Organism</TableHead><TableHead>CFU</TableHead><TableHead>Corrective Action</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {results.map(r => (
+                {filteredResults.map(r => (
                   <TableRow key={r.id}>
                     <TableCell>{format(new Date(r.sample_date), "dd MMM yyyy")}</TableCell>
                     <TableCell className="font-mono">{r.emp_sampling_points?.point_code || "—"}</TableCell>
@@ -265,12 +265,12 @@ const EnvironmentalMonitoring = () => {
                       {r.corrective_action_status === "required" ? (
                         <span className="text-xs text-destructive font-medium">⚠ Required</span>
                       ) : r.corrective_action_status === "completed" ? (
-                        <span className="text-xs text-emerald-500 font-medium">✓ Done</span>
+                        <span className="text-xs text-status-closed font-medium">✓ Done</span>
                       ) : "—"}
                     </TableCell>
                   </TableRow>
                 ))}
-                {results.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No results recorded</TableCell></TableRow>}
+                {filteredResults.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No results found</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>
