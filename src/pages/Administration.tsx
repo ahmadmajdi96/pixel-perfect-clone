@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Shield, Settings, UserPlus, Trash2 } from "lucide-react";
+import { TableFilters } from "@/components/TableFilters";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Constants } from "@/integrations/supabase/types";
@@ -34,6 +35,8 @@ const Administration = () => {
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
+  const [search, setSearch] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
   const isAdmin = myRoles.includes("system_admin");
 
@@ -129,7 +132,22 @@ const Administration = () => {
             </Dialog>
           </div>
           {!isAdmin && <p className="text-sm text-severity-medium">You need System Admin role to manage user roles.</p>}
-          <div className="rounded-md border">
+          <TableFilters
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search users..."
+            filters={[
+              { key: "role", label: "Role", options: ROLES.map(r => ({ value: r, label: ROLE_LABELS[r] || r })) },
+            ]}
+            filterValues={filterValues}
+            onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+            resultCount={profiles.filter(p => {
+              if (search && !(p.full_name || "").toLowerCase().includes(search.toLowerCase())) return false;
+              if (filterValues.role && filterValues.role !== "all" && !getUserRoles(p.user_id).includes(filterValues.role)) return false;
+              return true;
+            }).length}
+          />
+          <div className="data-card overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -145,7 +163,11 @@ const Administration = () => {
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Loading...</TableCell></TableRow>
                 ) : profiles.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">No users found</TableCell></TableRow>
-                ) : profiles.map(p => {
+                ) : profiles.filter(p => {
+                  if (search && !(p.full_name || "").toLowerCase().includes(search.toLowerCase())) return false;
+                  if (filterValues.role && filterValues.role !== "all" && !getUserRoles(p.user_id).includes(filterValues.role)) return false;
+                  return true;
+                }).map(p => {
                   const roles = getUserRoles(p.user_id);
                   const roleEntries = userRoles.filter(r => r.user_id === p.user_id);
                   return (
