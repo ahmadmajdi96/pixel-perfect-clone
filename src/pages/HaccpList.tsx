@@ -171,7 +171,7 @@ const HaccpList = () => {
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : ccps.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No CCPs registered</TableCell></TableRow>
-            ) : ccps.map((ccp) => (
+            ) : filtered.map((ccp) => (
               <TableRow key={ccp.id} className="cursor-pointer hover:bg-secondary/50" onClick={() => navigate(`/haccp/${ccp.id}`)}>
                 <TableCell className="font-mono font-medium">{ccp.ccp_number}</TableCell>
                 <TableCell>{ccp.process_step}</TableCell>
