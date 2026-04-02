@@ -15,6 +15,16 @@ import SupplierDetail from "./pages/SupplierDetail";
 import ComplaintList from "./pages/ComplaintList";
 import ComplaintNew from "./pages/ComplaintNew";
 import ComplaintDetail from "./pages/ComplaintDetail";
+import HaccpList from "./pages/HaccpList";
+import HaccpDetail from "./pages/HaccpDetail";
+import IncomingInspectionList from "./pages/IncomingInspectionList";
+import DeviationList from "./pages/DeviationList";
+import AuditList from "./pages/AuditList";
+import ChangeControlList from "./pages/ChangeControlList";
+import DocumentList from "./pages/DocumentList";
+import CalibrationList from "./pages/CalibrationList";
+import TrainingList from "./pages/TrainingList";
+import RiskRegister from "./pages/RiskRegister";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +56,17 @@ const App = () => (
               <Route path="/complaints" element={<ComplaintList />} />
               <Route path="/complaints/new" element={<ComplaintNew />} />
               <Route path="/complaints/:id" element={<ComplaintDetail />} />
+              <Route path="/haccp" element={<HaccpList />} />
+              <Route path="/haccp/:id" element={<HaccpDetail />} />
+              <Route path="/incoming-inspection" element={<IncomingInspectionList />} />
+              <Route path="/deviations" element={<DeviationList />} />
+              <Route path="/audits" element={<AuditList />} />
+              <Route path="/audits/:id" element={<AuditList />} />
+              <Route path="/change-control" element={<ChangeControlList />} />
+              <Route path="/documents" element={<DocumentList />} />
+              <Route path="/calibration" element={<CalibrationList />} />
+              <Route path="/training" element={<TrainingList />} />
+              <Route path="/risk" element={<RiskRegister />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
