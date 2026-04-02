@@ -15,6 +15,7 @@ import { TableFilters } from "@/components/TableFilters";
 const STATUS_COLORS: Record<string, string> = { in_calibration: "bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]", due_soon: "bg-severity-medium/15 text-severity-medium border border-severity-medium/30", overdue: "bg-severity-critical/15 text-severity-critical border border-severity-critical/30", out_of_service: "bg-severity-critical/15 text-severity-critical border border-severity-critical/30" };
 
 const CalibrationList = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [instruments, setInstruments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
