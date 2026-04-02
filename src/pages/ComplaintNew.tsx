@@ -36,12 +36,19 @@ const ComplaintNew = () => {
     try {
       const { data, error } = await supabase
         .from("complaints")
-        .insert({
-          ...form,
+        .insert([{
+          product: form.product,
+          batch_number: form.batch_number || null,
+          complaint_type: form.complaint_type as any,
+          source: form.source,
+          description: form.description,
+          complainant_name: form.complainant_name || null,
+          complainant_contact: form.complainant_contact || null,
+          regulatory_flag: form.regulatory_flag,
           severity: autoSeverity as any,
           complaint_number: "",
           logged_by: user?.id,
-        })
+        }])
         .select()
         .single();
       if (error) throw error;

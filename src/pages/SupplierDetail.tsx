@@ -33,7 +33,7 @@ const SupplierDetail = () => {
     setLoading(false);
   };
 
-  const updateStatus = async (status: string) => {
+  const updateStatus = async (status: "approved" | "conditional" | "suspended" | "rejected" | "pending") => {
     const { error } = await supabase.from("suppliers").update({ status }).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success(`Supplier ${status}`);

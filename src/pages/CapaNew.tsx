@@ -30,12 +30,17 @@ const CapaNew = () => {
     try {
       const { data, error } = await supabase
         .from("capas")
-        .insert({
-          ...form,
+        .insert([{
+          title: form.title,
+          description: form.description,
+          severity: form.severity as any,
+          source_type: form.source_type,
+          source_reference: form.source_reference,
+          product_line: form.product_line,
           owner_id: user?.id,
           capa_number: "",
           sla_deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        })
+        }])
         .select()
         .single();
       if (error) throw error;

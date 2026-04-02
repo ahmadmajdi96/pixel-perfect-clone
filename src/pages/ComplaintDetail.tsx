@@ -43,7 +43,7 @@ const ComplaintDetail = () => {
     setLoading(false);
   };
 
-  const updateStatus = async (status: string) => {
+  const updateStatus = async (status: "logged" | "investigating" | "resolved" | "closed") => {
     const { error } = await supabase.from("complaints").update({
       status,
       ...(status === "resolved" ? { resolved_at: new Date().toISOString() } : {}),
