@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
+import { TableFilters } from "@/components/TableFilters";
 
 const HaccpList = () => {
   const navigate = useNavigate();
