@@ -112,6 +112,14 @@ const RiskRegister = () => {
         </Dialog>
       </div>
 
+      <TableFilters search={search} onSearchChange={setSearch} searchPlaceholder="Search risks..."
+        filters={[
+          { key: "category", label: "Category", options: ["HACCP", "TACCP", "VACCP", "Supply Chain", "Facility", "Regulatory"].map(c => ({ value: c, label: c })) },
+          { key: "status", label: "Status", options: [{ value: "active", label: "Active" }, { value: "mitigated", label: "Mitigated" }, { value: "closed", label: "Closed" }] },
+        ]}
+        filterValues={filters} onFilterChange={(k, v) => setFilters(f => ({ ...f, [k]: v }))}
+      />
+
       {/* Risk Heatmap */}
       <div className="data-card">
         <h3 className="metric-label mb-4">Risk Heatmap (Likelihood × Severity)</h3>
