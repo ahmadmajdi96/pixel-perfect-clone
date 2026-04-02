@@ -174,7 +174,14 @@ const RiskRegister = () => {
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-            ) : risks.length === 0 ? (
+            ) : (() => {
+              const filteredRisks = risks.filter(r => {
+                if (filters.category !== "all" && r.category !== filters.category) return false;
+                if (filters.status !== "all" && r.status !== filters.status) return false;
+                if (search) { const q = search.toLowerCase(); return r.description.toLowerCase().includes(q) || (r.owner ?? "").toLowerCase().includes(q) || r.category.toLowerCase().includes(q); }
+                return true;
+              });
+              return filteredRisks.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No risks registered</TableCell></TableRow>
             ) : risks.map((r) => (
               <TableRow key={r.id}>
