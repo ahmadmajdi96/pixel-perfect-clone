@@ -1,99 +1,47 @@
 
 
-## Quality Management System (QMS) — Phase 1 Build Plan
+## Match QMS UI to Production Pulse Theme
 
-### Overview
-Build the foundational QMS platform with 4 core modules: Quality Dashboard, CAPA Management, Supplier Quality, and Customer Complaints. Full backend with Supabase (Lovable Cloud) for auth, database, and RLS.
+The Production Pulse project uses a distinctive dark industrial "control-room" aesthetic that differs from the current QMS theme. Here's what needs to change:
 
----
+### Key Differences
 
-### 1. Foundation & Auth Setup
-- **Lovable Cloud backend** with Supabase database, auth, and RLS
-- **User roles system** — `user_roles` table with enum roles: `qa_manager`, `food_safety_manager`, `quality_technician`, `food_technologist`, `supplier_quality_manager`, `plant_manager`, `system_admin`
-- **Login page** with email/password auth
-- **Profile creation** on signup with role assignment
-- **App shell** — sidebar navigation with role-based menu visibility, top bar with user info and notifications badge
+| Aspect | Current QMS | Production Pulse Target |
+|--------|-------------|------------------------|
+| Background | `222 47% 6%` (dark blue) | `220 20% 7%` (darker, more neutral) |
+| Cards | `222 47% 9%` | `220 18% 10%` |
+| Primary | `217 91% 60%` | `210 100% 56%` |
+| Fonts | System default | Inter + JetBrains Mono |
+| Sidebar | Has footer with user/logout | Logo + nav only, user in top nav |
+| Top bar | Simple "QMS" title | Facility name, live indicator, alert bell, user badge |
+| Cards style | Standard shadcn Cards | `data-card` with hover glow effect |
+| Badges | Filled solid color | Translucent background with colored border |
+| Labels | Standard | `metric-label` (uppercase, tracked, tiny) |
+| Values | Standard bold | `metric-value` (mono font, tracked) |
 
----
+### Files to Change
 
-### 2. Database Schema (Core Tables)
-- `profiles` — user profiles with name, department
-- `user_roles` — role assignments per user
-- `capas` — CAPA records with 7-stage status, severity, source type, owner, SLA deadline
-- `capa_actions` — corrective/preventive action tasks linked to CAPAs
-- `capa_timeline` — audit trail entries per CAPA
-- `suppliers` — supplier directory with approval status, categories, contact info
-- `supplier_scorecards` — periodic performance scores per supplier
-- `supplier_coas` — certificates of analysis per supplier/ingredient
-- `complaints` — customer complaints with severity, type, batch, CAPA link
-- `complaint_investigations` — investigation records per complaint
-- RLS policies on all tables scoped by user role
+1. **`src/index.css`** — Replace CSS variables with Production Pulse values; add `data-card`, `metric-value`, `metric-label`, `pulse-dot`, `grid-pattern`, `status-*` badge classes, and scrollbar utility; import Inter + JetBrains Mono fonts
 
----
+2. **`tailwind.config.ts`** — Add `fontFamily` (Inter, JetBrains Mono), `status` color tokens (running/idle/transition/down/normal/monitor/warning/critical), `pulse-glow` animation; keep existing `severity` and `chart` tokens
 
-### 3. Quality Dashboard (`/dashboard`)
-- **Role-adaptive layout** — widgets shown/hidden based on user role
-- **Open CAPA summary widget** — count by severity (Critical/High/Medium/Low) with oldest-open age
-- **Active quality holds strip** — lots currently on hold with reason and age
-- **Complaint rate trend chart** — 30-day rolling CPMU trend with target line (using Recharts)
-- **Audit countdown strip** — next 3 scheduled audits with days remaining
-- **Calibration due alerts** — instruments due within 7 days
-- **Quick action buttons** — Log Complaint, Create CAPA, Start Inspection
+3. **`src/components/AppLayout.tsx`** — Replace simple header with Production Pulse-style `TopNav` pattern: facility name, live dot indicator, alert bell with badge count, user avatar with role label, sign-out button
 
----
+4. **`src/components/AppSidebar.tsx`** — Replace "QMS" text label with icon + "QMS" + "Quality Management" subtext pattern; use `metric-label`-style group labels; remove footer (user info moves to top nav)
 
-### 4. CAPA Management (`/capa`)
-- **CAPA list table** — sortable/filterable with ID, source, severity badge, status, owner, SLA deadline, days open
-- **Status pipeline view** — Kanban-style board showing CAPAs across 7 stages (Initiation → RCA → Action Assignment → Preventive → Verification → Effectiveness Check → Closure)
-- **CAPA trend chart** — monthly open/close rate and average days-to-close
-- **Create CAPA form** — with source type selector, severity, product/line, description
-- **CAPA detail page** (`/capa/:id`):
-  - Header with status badge, SLA countdown, owner
-  - Source event context panel
-  - RCA workspace with 5-Why template
-  - Corrective action task list with assignment and completion tracking
-  - Preventive action task list
-  - Verification panel (QA Manager sign-off)
-  - Effectiveness check panel (30/60/90-day)
-  - Full timeline audit trail (append-only log)
-  - Stage advancement buttons with validation gates
+5. **`src/pages/Auth.tsx`** — Restyle to match Production Pulse login: `grid-pattern` background, custom input fields with icons (User, Lock, Eye toggle), `data-card` form container, `metric-label` labels, inline error banner
 
----
+6. **`src/components/SeverityBadge.tsx`** — Switch from solid fills to translucent `status-badge` pattern (15% opacity background, colored text, 30% opacity border)
 
-### 5. Supplier Quality Management (`/suppliers`)
-- **Supplier directory table** — name, categories, approval status badge, scorecard rating, last audit date, next re-qualification due
-- **Status filters** — Approved/Conditional/Suspended/Rejected
-- **Supplier scorecard summary chart** — radar chart of aggregated performance
-- **Add supplier form** — registration with qualification workflow trigger
-- **Supplier detail page** (`/suppliers/:id`):
-  - Header with approval status and key dates
-  - Qualification checklist with evidence upload
-  - Scorecard history table with trend indicators
-  - COA/specification library (upload, version, filter by ingredient)
-  - Linked nonconformances list
-  - Approve/Suspend/Reject actions with reason and sign-off
+7. **`src/components/StatusBadge.tsx`** — Same translucent badge treatment for CAPA status, supplier status, and complaint status badges
 
----
+8. **`src/pages/Dashboard.tsx`** — Apply `data-card` class to KPI cards, `metric-value` for numbers, `metric-label` for headings; style chart tooltips with dark popover background
 
-### 6. Customer Complaints (`/complaints`)
-- **Complaint list table** — ID, product, batch, date, type, severity badge, source, status, CAPA link
-- **CPMU dashboard widget** — per-product rolling 30-day metric with threshold highlighting
-- **Complaint type breakdown** — Pareto chart (foreign body, allergen, mislabeling, quality defect, etc.)
-- **Log complaint form** — with auto-severity scoring based on type and product category
-- **Complaint detail page** (`/complaints/:id`):
-  - Header with severity badge, product, batch, source
-  - Full complaint description with photo attachments
-  - Investigation record form (probable cause, contributing factors, trend assessment)
-  - Response to complainant panel with SLA tracking
-  - CAPA link panel — auto-generated CAPA when CPMU threshold exceeded
-  - Regulatory escalation flag for food safety risks
+9. **All list/detail pages** — Replace `<Card>` wrappers with `data-card` divs where appropriate; apply `metric-label` to section headings
 
----
-
-### 7. Design & UX
-- **Dark professional theme** suited for industrial/manufacturing environments
-- **Severity color coding** — Critical (red), High (orange), Medium (amber), Low (blue)
-- **Status badges** throughout — consistent pill-style badges for all workflow states
-- **Responsive layout** — desktop-first with sidebar, functional on tablet
-- **Toast notifications** for actions (CAPA created, supplier status changed, etc.)
+### What stays the same
+- All routing, auth logic, database queries, and business logic remain unchanged
+- shadcn UI component library structure stays intact
+- The sidebar navigation items (Dashboard, CAPA, Suppliers, Complaints) stay the same
+- All page content and functionality is preserved
 
