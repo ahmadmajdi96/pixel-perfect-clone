@@ -16,6 +16,7 @@ import { TableFilters } from "@/components/TableFilters";
 const RESULT_COLORS: Record<string, string> = { pass: "bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]", fail: "bg-severity-critical/15 text-severity-critical border border-severity-critical/30", pending: "bg-severity-medium/15 text-severity-medium border border-severity-medium/30" };
 
 const TrainingList = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
