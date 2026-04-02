@@ -163,7 +163,11 @@ const Administration = () => {
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Loading...</TableCell></TableRow>
                 ) : profiles.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">No users found</TableCell></TableRow>
-                ) : profiles.map(p => {
+                ) : profiles.filter(p => {
+                  if (search && !(p.full_name || "").toLowerCase().includes(search.toLowerCase())) return false;
+                  if (filterValues.role && filterValues.role !== "all" && !getUserRoles(p.user_id).includes(filterValues.role)) return false;
+                  return true;
+                }).map(p => {
                   const roles = getUserRoles(p.user_id);
                   const roleEntries = userRoles.filter(r => r.user_id === p.user_id);
                   return (
