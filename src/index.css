@@ -2,103 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 20% 10%;
+    --background: 220 20% 7%;
+    --foreground: 210 20% 90%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 90%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
+    --popover: 220 18% 12%;
+    --popover-foreground: 210 20% 90%;
 
-    --primary: 217 91% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 210 100% 56%;
+    --primary-foreground: 220 20% 7%;
 
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 220 20% 20%;
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 20% 80%;
 
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 12% 50%;
 
-    --accent: 220 14% 92%;
-    --accent-foreground: 220 20% 20%;
+    --accent: 210 100% 56%;
+    --accent-foreground: 220 20% 7%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 87%;
-    --input: 220 13% 87%;
-    --ring: 217 91% 50%;
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 210 100% 56%;
 
     --radius: 0.5rem;
 
-    --severity-critical: 0 72% 51%;
+    /* Severity colors */
+    --severity-critical: 0 84% 60%;
     --severity-high: 25 95% 53%;
-    --severity-medium: 45 93% 47%;
-    --severity-low: 217 91% 50%;
+    --severity-medium: 48 96% 53%;
+    --severity-low: 210 100% 56%;
 
-    --status-open: 217 91% 50%;
-    --status-in-progress: 45 93% 47%;
+    /* Status colors */
+    --status-open: 210 100% 56%;
+    --status-in-progress: 48 96% 53%;
     --status-closed: 142 71% 45%;
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 213 31% 91%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 217 91% 60%;
-  }
+    /* Production Pulse status tokens */
+    --status-running: 142 71% 45%;
+    --status-idle: 48 96% 53%;
+    --status-transition: 25 95% 53%;
+    --status-down: 0 84% 60%;
+    --status-normal: 142 71% 45%;
+    --status-monitor: 48 96% 53%;
+    --status-warning: 25 95% 53%;
+    --status-critical: 0 84% 60%;
 
-  .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 93%;
+    /* Chart colors */
+    --chart-1: 210 100% 56%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 48 96% 53%;
+    --chart-4: 280 67% 60%;
+    --chart-5: 0 84% 60%;
 
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 93%;
+    /* Sidebar */
+    --sidebar-background: 220 20% 5%;
+    --sidebar-foreground: 210 15% 65%;
+    --sidebar-primary: 210 100% 56%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent: 220 16% 12%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 220 14% 14%;
+    --sidebar-ring: 210 100% 56%;
 
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 93%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 6%;
-
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 93%;
-
-    --muted: 217 33% 14%;
-    --muted-foreground: 215 20% 55%;
-
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 93%;
-
-    --destructive: 0 62% 45%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 217 91% 60%;
-
-    --severity-critical: 0 72% 55%;
-    --severity-high: 25 95% 58%;
-    --severity-medium: 45 93% 52%;
-    --severity-low: 217 91% 60%;
-
-    --status-open: 217 91% 60%;
-    --status-in-progress: 45 93% 52%;
-    --status-closed: 142 71% 50%;
-
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 213 31% 85%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 12%;
-    --sidebar-accent-foreground: 210 40% 93%;
-    --sidebar-border: 217 33% 12%;
-    --sidebar-ring: 217 91% 60%;
+    /* Custom tokens */
+    --glow-primary: 0 0 20px hsl(210 100% 56% / 0.3);
+    --surface-elevated: 220 16% 13%;
   }
 }
 
@@ -108,6 +86,107 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider;
+  }
+
+  .status-running {
+    background: hsl(var(--status-running) / 0.15);
+    color: hsl(var(--status-running));
+    border: 1px solid hsl(var(--status-running) / 0.3);
+  }
+
+  .status-idle {
+    background: hsl(var(--status-idle) / 0.15);
+    color: hsl(var(--status-idle));
+    border: 1px solid hsl(var(--status-idle) / 0.3);
+  }
+
+  .status-transition {
+    background: hsl(var(--status-transition) / 0.15);
+    color: hsl(var(--status-transition));
+    border: 1px solid hsl(var(--status-transition) / 0.3);
+  }
+
+  .status-down {
+    background: hsl(var(--status-down) / 0.15);
+    color: hsl(var(--status-down));
+    border: 1px solid hsl(var(--status-down) / 0.3);
+  }
+
+  .status-normal {
+    background: hsl(var(--status-normal) / 0.15);
+    color: hsl(var(--status-normal));
+    border: 1px solid hsl(var(--status-normal) / 0.3);
+  }
+
+  .status-monitor {
+    background: hsl(var(--status-monitor) / 0.15);
+    color: hsl(var(--status-monitor));
+    border: 1px solid hsl(var(--status-monitor) / 0.3);
+  }
+
+  .status-warning {
+    background: hsl(var(--status-warning) / 0.15);
+    color: hsl(var(--status-warning));
+    border: 1px solid hsl(var(--status-warning) / 0.3);
+  }
+
+  .status-critical {
+    background: hsl(var(--status-critical) / 0.15);
+    color: hsl(var(--status-critical));
+    border: 1px solid hsl(var(--status-critical) / 0.3);
+  }
+
+  .data-card {
+    @apply bg-card border border-border rounded-lg p-4 transition-all duration-200;
+  }
+
+  .data-card:hover {
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: var(--glow-primary);
+  }
+
+  .metric-value {
+    @apply font-mono text-2xl font-bold tracking-tight;
+  }
+
+  .metric-label {
+    @apply text-xs font-medium uppercase tracking-widest text-muted-foreground;
+  }
+
+  .pulse-dot {
+    @apply relative inline-block w-2 h-2 rounded-full;
+  }
+
+  .pulse-dot::after {
+    content: '';
+    @apply absolute inset-0 rounded-full animate-ping;
+    background: inherit;
+    opacity: 0.4;
+  }
+
+  .grid-pattern {
+    background-image: 
+      linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
   }
 }

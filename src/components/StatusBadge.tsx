@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const capaStatusLabels: Record<string, string> = {
@@ -12,18 +11,45 @@ const capaStatusLabels: Record<string, string> = {
 };
 
 const supplierStatusConfig: Record<string, { label: string; className: string }> = {
-  approved: { label: "Approved", className: "bg-status-closed text-white border-transparent" },
-  conditional: { label: "Conditional", className: "bg-severity-medium text-black border-transparent" },
-  suspended: { label: "Suspended", className: "bg-severity-high text-white border-transparent" },
-  rejected: { label: "Rejected", className: "bg-severity-critical text-white border-transparent" },
-  pending: { label: "Pending", className: "bg-muted text-muted-foreground border-transparent" },
+  approved: {
+    label: "Approved",
+    className: "status-badge bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]",
+  },
+  conditional: {
+    label: "Conditional",
+    className: "status-badge bg-[hsl(var(--severity-medium)/0.15)] text-severity-medium border border-[hsl(var(--severity-medium)/0.3)]",
+  },
+  suspended: {
+    label: "Suspended",
+    className: "status-badge bg-[hsl(var(--severity-high)/0.15)] text-severity-high border border-[hsl(var(--severity-high)/0.3)]",
+  },
+  rejected: {
+    label: "Rejected",
+    className: "status-badge bg-[hsl(var(--severity-critical)/0.15)] text-severity-critical border border-[hsl(var(--severity-critical)/0.3)]",
+  },
+  pending: {
+    label: "Pending",
+    className: "status-badge bg-muted text-muted-foreground border border-border",
+  },
 };
 
 const complaintStatusConfig: Record<string, { label: string; className: string }> = {
-  logged: { label: "Logged", className: "bg-status-open text-white border-transparent" },
-  investigating: { label: "Investigating", className: "bg-status-in-progress text-black border-transparent" },
-  resolved: { label: "Resolved", className: "bg-status-closed text-white border-transparent" },
-  closed: { label: "Closed", className: "bg-muted text-muted-foreground border-transparent" },
+  logged: {
+    label: "Logged",
+    className: "status-badge bg-[hsl(var(--status-open)/0.15)] text-primary border border-[hsl(var(--status-open)/0.3)]",
+  },
+  investigating: {
+    label: "Investigating",
+    className: "status-badge bg-[hsl(var(--status-in-progress)/0.15)] text-status-in-progress border border-[hsl(var(--status-in-progress)/0.3)]",
+  },
+  resolved: {
+    label: "Resolved",
+    className: "status-badge bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]",
+  },
+  closed: {
+    label: "Closed",
+    className: "status-badge bg-muted text-muted-foreground border border-border",
+  },
 };
 
 export function CapaStatusBadge({ status }: { status: string }) {
@@ -32,21 +58,21 @@ export function CapaStatusBadge({ status }: { status: string }) {
   const isMid = ["action_assignment", "preventive_action"].includes(status);
   const isDone = status === "closure";
   const className = isDone
-    ? "bg-status-closed text-white border-transparent"
+    ? "status-badge bg-[hsl(var(--status-closed)/0.15)] text-status-closed border border-[hsl(var(--status-closed)/0.3)]"
     : isMid
-    ? "bg-status-in-progress text-black border-transparent"
+    ? "status-badge bg-[hsl(var(--status-in-progress)/0.15)] text-status-in-progress border border-[hsl(var(--status-in-progress)/0.3)]"
     : isEarly
-    ? "bg-status-open text-white border-transparent"
-    : "bg-primary text-primary-foreground border-transparent";
-  return <Badge className={cn(className)}>{label}</Badge>;
+    ? "status-badge bg-[hsl(var(--status-open)/0.15)] text-primary border border-[hsl(var(--status-open)/0.3)]"
+    : "status-badge bg-[hsl(var(--primary)/0.15)] text-primary border border-[hsl(var(--primary)/0.3)]";
+  return <span className={cn(className)}>{label}</span>;
 }
 
 export function SupplierStatusBadge({ status }: { status: string }) {
   const config = supplierStatusConfig[status] ?? supplierStatusConfig.pending;
-  return <Badge className={cn(config.className)}>{config.label}</Badge>;
+  return <span className={cn(config.className)}>{config.label}</span>;
 }
 
 export function ComplaintStatusBadge({ status }: { status: string }) {
   const config = complaintStatusConfig[status] ?? complaintStatusConfig.logged;
-  return <Badge className={cn(config.className)}>{config.label}</Badge>;
+  return <span className={cn(config.className)}>{config.label}</span>;
 }

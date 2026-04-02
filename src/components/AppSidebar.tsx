@@ -3,12 +3,10 @@ import {
   AlertTriangle,
   Truck,
   MessageSquareWarning,
-  LogOut,
-  User,
+  Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSidebar } from "@/components/ui/sidebar";
 import {
   Sidebar,
   SidebarContent,
@@ -18,10 +16,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarFooter,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -33,21 +28,28 @@ const navItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
-  const { profile, signOut } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {!collapsed && (
-              <span className="text-sm font-bold tracking-wide text-sidebar-primary">
-                QMS
-              </span>
-            )}
+          <SidebarGroupLabel className="px-3 py-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
+                <Shield className="h-4 w-4 text-primary-foreground" />
+              </div>
+              {!collapsed && (
+                <div>
+                  <span className="text-sm font-bold tracking-wide text-sidebar-accent-foreground">QMS</span>
+                  <p className="text-[10px] text-sidebar-foreground leading-none mt-0.5">Quality Management</p>
+                </div>
+              )}
+            </div>
           </SidebarGroupLabel>
           <SidebarGroupContent>
+            {!collapsed && (
+              <p className="metric-label px-3 pb-2">Navigation</p>
+            )}
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -68,29 +70,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-3">
-        {!collapsed && (
-          <div className="mb-2 flex items-center gap-2 px-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
-              <User className="h-4 w-4 text-sidebar-accent-foreground" />
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="truncate text-xs font-medium text-sidebar-foreground">
-                {profile?.full_name || "User"}
-              </p>
-            </div>
-          </div>
-        )}
-        <Button
-          variant="ghost"
-          size={collapsed ? "icon" : "sm"}
-          onClick={signOut}
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-        >
-          <LogOut className="h-4 w-4" />
-          {!collapsed && <span className="ml-2">Sign Out</span>}
-        </Button>
-      </SidebarFooter>
     </Sidebar>
   );
 }
