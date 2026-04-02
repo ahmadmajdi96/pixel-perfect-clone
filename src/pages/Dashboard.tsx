@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/SeverityBadge";
-import { AlertTriangle, MessageSquareWarning, Truck, Plus, ClipboardList, Calendar, TrendingUp } from "lucide-react";
+import { AlertTriangle, MessageSquareWarning, Truck, Plus, ClipboardList, Calendar, TrendingUp, Wheat, GitBranch, ShieldAlert, Wrench } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell,
+  BarChart, Bar, Cell, ScatterChart, Scatter, ZAxis,
 } from "recharts";
 import { formatDistanceToNow } from "date-fns";
 
@@ -15,6 +15,13 @@ const PARETO_COLORS = [
   "hsl(210 100% 56%)", "hsl(142 71% 45%)", "hsl(280 67% 60%)",
   "hsl(215 12% 50%)", "hsl(340 75% 55%)", "hsl(170 70% 40%)",
 ];
+
+const RISK_COLORS: Record<string, string> = {
+  low: "hsl(210 100% 56%)",
+  medium: "hsl(48 96% 53%)",
+  high: "hsl(25 95% 53%)",
+  critical: "hsl(0 84% 60%)",
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -28,25 +35,23 @@ const Dashboard = () => {
   const [avgDaysOpen, setAvgDaysOpen] = useState(0);
   const [suppliersByStatus, setSuppliersByStatus] = useState<Record<string, number>>({});
   const [cpmuByProduct, setCpmuByProduct] = useState<any[]>([]);
+  const [allergenStats, setAllergenStats] = useState({ total: 0, verified: 0, highRisk: 0, riskData: [] as any[] });
+  const [traceStats, setTraceStats] = useState({ totalLots: 0, quarantined: 0, recalled: 0, avgRecovery: 0 });
+  const [calibrationStats, setCalibrationStats] = useState({ overdue: 0, dueSoon: 0 });
+  const [deviationStats, setDeviationStats] = useState({ open: 0, critical: 0 });
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  useEffect(() => { fetchDashboardData(); }, []);
 
   const fetchDashboardData = async () => {
     // Open CAPAs by severity
     const { data: capas } = await supabase
-      .from("capas")
-      .select("severity, status, created_at, sla_deadline")
-      .neq("status", "closure");
-
+      .from("capas").select("severity, status, created_at, sla_deadline").neq("status", "closure");
     if (capas) {
       const summary = { critical: 0, high: 0, medium: 0, low: 0, total: capas.length };
-      let totalDays = 0;
-      let overdue = 0;
+      let totalDays = 0, overdue = 0;
       capas.forEach((c) => {
         if (c.severity in summary) summary[c.severity as keyof typeof summary]++;
-        totalDays += (Date.now() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24);
+        totalDays += (Date.now() - new Date(c.created_at).getTime()) / 86400000;
         if (c.sla_deadline && new Date(c.sla_deadline) < new Date()) overdue++;
       });
       setCapaSummary(summary);
@@ -55,13 +60,10 @@ const Dashboard = () => {
     }
 
     // Active complaints
-    const { count } = await supabase
-      .from("complaints")
-      .select("*", { count: "exact", head: true })
-      .in("status", ["logged", "investigating"]);
+    const { count } = await supabase.from("complaints").select("*", { count: "exact", head: true }).in("status", ["logged", "investigating"]);
     setComplaintCount(count ?? 0);
 
-    // Supplier count + by status
+    // Suppliers
     const { data: suppliers } = await supabase.from("suppliers").select("status");
     setSupplierCount(suppliers?.length ?? 0);
     if (suppliers) {
@@ -71,22 +73,16 @@ const Dashboard = () => {
     }
 
     // Recent CAPAs
-    const { data: recent } = await supabase
-      .from("capas")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(5);
+    const { data: recent } = await supabase.from("capas").select("*").order("created_at", { ascending: false }).limit(5);
     setRecentCapas(recent ?? []);
 
-    // Complaint trend (30 days)
-    const { data: complaints } = await supabase
-      .from("complaints")
+    // Complaint trend (90 days for better data)
+    const { data: complaints } = await supabase.from("complaints")
       .select("created_at, complaint_type, product")
-      .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .gte("created_at", new Date(Date.now() - 90 * 86400000).toISOString())
       .order("created_at", { ascending: true });
 
     if (complaints) {
-      // Trend by day
       const byDay: Record<string, number> = {};
       complaints.forEach((c) => {
         const day = new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -94,25 +90,65 @@ const Dashboard = () => {
       });
       setComplaintTrend(Object.entries(byDay).map(([date, count]) => ({ date, count })));
 
-      // By type (Pareto)
       const byType: Record<string, number> = {};
       complaints.forEach((c) => { byType[c.complaint_type] = (byType[c.complaint_type] || 0) + 1; });
-      const sorted = Object.entries(byType)
-        .map(([type, count]) => ({
-          type: type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-          count,
-        }))
-        .sort((a, b) => b.count - a.count);
-      setComplaintByType(sorted);
+      setComplaintByType(Object.entries(byType)
+        .map(([type, count]) => ({ type: type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), count }))
+        .sort((a, b) => b.count - a.count));
 
-      // CPMU by product
       const byProduct: Record<string, number> = {};
       complaints.forEach((c) => { byProduct[c.product] = (byProduct[c.product] || 0) + 1; });
-      const cpmu = Object.entries(byProduct)
-        .map(([product, count]) => ({ product, complaints: count, cpmu: count }))
-        .sort((a, b) => b.complaints - a.complaints)
-        .slice(0, 8);
-      setCpmuByProduct(cpmu);
+      setCpmuByProduct(Object.entries(byProduct)
+        .map(([product, count]) => ({ product, complaints: count }))
+        .sort((a, b) => b.complaints - a.complaints).slice(0, 8));
+    }
+
+    // Allergen stats
+    const { data: allergens } = await supabase.from("allergen_profiles").select("*");
+    if (allergens) {
+      const riskBuckets = [
+        { name: "Low (0-3)", count: allergens.filter(a => (a.cross_contact_risk_score ?? 0) <= 3).length, fill: RISK_COLORS.low },
+        { name: "Medium (4-6)", count: allergens.filter(a => (a.cross_contact_risk_score ?? 0) >= 4 && (a.cross_contact_risk_score ?? 0) <= 6).length, fill: RISK_COLORS.medium },
+        { name: "High (7-8)", count: allergens.filter(a => (a.cross_contact_risk_score ?? 0) >= 7 && (a.cross_contact_risk_score ?? 0) <= 8).length, fill: RISK_COLORS.high },
+        { name: "Critical (9-10)", count: allergens.filter(a => (a.cross_contact_risk_score ?? 0) >= 9).length, fill: RISK_COLORS.critical },
+      ];
+      setAllergenStats({
+        total: allergens.length,
+        verified: allergens.filter(a => a.label_status === "verified").length,
+        highRisk: allergens.filter(a => (a.cross_contact_risk_score ?? 0) >= 7).length,
+        riskData: riskBuckets,
+      });
+    }
+
+    // Traceability stats
+    const { data: lots } = await supabase.from("traceability_lots").select("status");
+    const { data: recalls } = await supabase.from("recall_exercises").select("recovery_rate_pct, status");
+    if (lots) {
+      const completed = recalls?.filter(r => r.recovery_rate_pct != null) ?? [];
+      setTraceStats({
+        totalLots: lots.length,
+        quarantined: lots.filter(l => l.status === "quarantined").length,
+        recalled: lots.filter(l => l.status === "recalled").length,
+        avgRecovery: completed.length > 0 ? Math.round(completed.reduce((s, r) => s + Number(r.recovery_rate_pct), 0) / completed.length * 10) / 10 : 0,
+      });
+    }
+
+    // Calibration
+    const { data: instruments } = await supabase.from("calibration_instruments").select("status");
+    if (instruments) {
+      setCalibrationStats({
+        overdue: instruments.filter(i => i.status === "overdue").length,
+        dueSoon: instruments.filter(i => i.status === "due_soon").length,
+      });
+    }
+
+    // Deviations
+    const { data: devs } = await supabase.from("deviations").select("status, severity").in("status", ["open", "investigating"]);
+    if (devs) {
+      setDeviationStats({
+        open: devs.length,
+        critical: devs.filter(d => d.severity === "critical").length,
+      });
     }
   };
 
@@ -125,18 +161,16 @@ const Dashboard = () => {
         </div>
         <div className="flex gap-2">
           <Button onClick={() => navigate("/complaints/new")} size="sm">
-            <MessageSquareWarning className="mr-2 h-4 w-4" />
-            Log Complaint
+            <MessageSquareWarning className="mr-2 h-4 w-4" />Log Complaint
           </Button>
           <Button onClick={() => navigate("/capa/new")} size="sm" variant="outline">
-            <Plus className="mr-2 h-4 w-4" />
-            Create CAPA
+            <Plus className="mr-2 h-4 w-4" />Create CAPA
           </Button>
         </div>
       </div>
 
       {/* KPI Row 1 */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="data-card cursor-pointer" onClick={() => navigate("/capa")}>
           <div className="flex items-center justify-between mb-3">
             <span className="metric-label">Open CAPAs</span>
@@ -179,88 +213,148 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* KPI Row 2 */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* KPI Row 2 - Extended */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="data-card cursor-pointer" onClick={() => navigate("/suppliers")}>
           <div className="flex items-center justify-between mb-3">
             <span className="metric-label">Suppliers</span>
             <Truck className="h-4 w-4 text-primary" />
           </div>
           <div className="metric-value">{supplierCount}</div>
-          <div className="mt-2 flex gap-2 text-xs">
+          <div className="mt-2 flex gap-2 text-xs flex-wrap">
             {suppliersByStatus.approved && <span className="text-status-closed">{suppliersByStatus.approved} approved</span>}
             {suppliersByStatus.conditional && <span className="text-severity-medium">{suppliersByStatus.conditional} conditional</span>}
             {suppliersByStatus.suspended && <span className="text-severity-high">{suppliersByStatus.suspended} suspended</span>}
           </div>
         </div>
 
-        <div className="data-card">
+        <div className="data-card cursor-pointer" onClick={() => navigate("/deviations")}>
           <div className="flex items-center justify-between mb-3">
-            <span className="metric-label">CAPA by Severity</span>
-            <ClipboardList className="h-4 w-4 text-muted-foreground" />
+            <span className="metric-label">Open Deviations</span>
+            <ShieldAlert className="h-4 w-4 text-severity-high" />
           </div>
-          <div className="space-y-1.5 text-sm">
-            <div className="flex justify-between"><span>Critical</span><span className="font-mono font-bold text-severity-critical">{capaSummary.critical}</span></div>
-            <div className="flex justify-between"><span>High</span><span className="font-mono font-bold text-severity-high">{capaSummary.high}</span></div>
-            <div className="flex justify-between"><span>Medium</span><span className="font-mono font-bold text-severity-medium">{capaSummary.medium}</span></div>
-            <div className="flex justify-between"><span>Low</span><span className="font-mono font-bold text-severity-low">{capaSummary.low}</span></div>
+          <div className="metric-value">{deviationStats.open}</div>
+          {deviationStats.critical > 0 && (
+            <p className="text-xs text-severity-critical mt-1">{deviationStats.critical} critical</p>
+          )}
+        </div>
+
+        <div className="data-card cursor-pointer" onClick={() => navigate("/calibration")}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">Calibration Alerts</span>
+            <Wrench className="h-4 w-4 text-severity-medium" />
+          </div>
+          <div className="flex items-baseline gap-3">
+            <div>
+              <span className="metric-value text-severity-critical">{calibrationStats.overdue}</span>
+              <span className="text-xs text-muted-foreground ml-1">overdue</span>
+            </div>
+            <div>
+              <span className="metric-value text-severity-medium">{calibrationStats.dueSoon}</span>
+              <span className="text-xs text-muted-foreground ml-1">due soon</span>
+            </div>
           </div>
         </div>
 
-        {/* CPMU by Product mini-table */}
-        <div className="data-card lg:col-span-2">
+        <div className="data-card cursor-pointer" onClick={() => navigate("/traceability")}>
           <div className="flex items-center justify-between mb-3">
-            <span className="metric-label">CPMU by Product (30d)</span>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <span className="metric-label">Traceability</span>
+            <GitBranch className="h-4 w-4 text-primary" />
           </div>
-          {cpmuByProduct.length > 0 ? (
-            <div className="space-y-1.5 text-sm max-h-[120px] overflow-y-auto scrollbar-thin">
-              {cpmuByProduct.map((p) => (
-                <div key={p.product} className="flex justify-between items-center">
-                  <span className="truncate max-w-[200px]">{p.product}</span>
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full"
-                        style={{ width: `${Math.min(100, (p.complaints / (cpmuByProduct[0]?.complaints || 1)) * 100)}%` }}
-                      />
-                    </div>
-                    <span className="font-mono font-bold w-8 text-right">{p.complaints}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">No data yet</p>
+          <div className="metric-value">{traceStats.totalLots} lots</div>
+          <div className="mt-2 flex gap-2 text-xs flex-wrap">
+            {traceStats.quarantined > 0 && <span className="text-severity-high">{traceStats.quarantined} quarantined</span>}
+            {traceStats.recalled > 0 && <span className="text-severity-critical">{traceStats.recalled} recalled</span>}
+            {traceStats.avgRecovery > 0 && <span className="text-status-closed">{traceStats.avgRecovery}% avg recovery</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* Allergen Risk + CAPA Severity */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="data-card cursor-pointer" onClick={() => navigate("/allergens")}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="metric-label">Allergen Cross-Contact Risk</h3>
+            <Wheat className="h-4 w-4 text-severity-medium" />
+          </div>
+          <div className="flex items-center gap-6 mb-4">
+            <div><span className="text-2xl font-bold">{allergenStats.total}</span><span className="text-xs text-muted-foreground ml-1">profiles</span></div>
+            <div><span className="text-2xl font-bold text-status-closed">{allergenStats.verified}</span><span className="text-xs text-muted-foreground ml-1">verified</span></div>
+            <div><span className="text-2xl font-bold text-severity-critical">{allergenStats.highRisk}</span><span className="text-xs text-muted-foreground ml-1">high risk</span></div>
+          </div>
+          {allergenStats.riskData.length > 0 && (
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={allergenStats.riskData} layout="vertical">
+                <XAxis type="number" tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" tick={{ fill: "hsl(215 12% 50%)", fontSize: 10 }} width={90} />
+                <Tooltip contentStyle={{ backgroundColor: "hsl(220 18% 12%)", border: "1px solid hsl(220 14% 18%)", borderRadius: "8px", color: "hsl(210 20% 90%)" }} />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                  {allergenStats.riskData.map((d: any, i: number) => (
+                    <Cell key={i} fill={d.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           )}
+        </div>
+
+        <div className="data-card">
+          <h3 className="metric-label mb-4">CAPA by Severity</h3>
+          <div className="space-y-3">
+            {["critical", "high", "medium", "low"].map((sev) => {
+              const count = capaSummary[sev as keyof typeof capaSummary] as number;
+              const maxCount = Math.max(capaSummary.critical, capaSummary.high, capaSummary.medium, capaSummary.low, 1);
+              return (
+                <div key={sev} className="flex items-center gap-3">
+                  <span className="text-xs capitalize w-14">{sev}</span>
+                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full bg-severity-${sev}`} style={{ width: `${(count / maxCount) * 100}%` }} />
+                  </div>
+                  <span className={`font-mono font-bold text-sm w-6 text-right text-severity-${sev}`}>{count}</span>
+                </div>
+              );
+            })}
+          </div>
+          {/* CPMU mini table */}
+          <div className="mt-6">
+            <p className="metric-label mb-2">CPMU by Product (90d)</p>
+            {cpmuByProduct.length > 0 ? (
+              <div className="space-y-1.5 text-sm max-h-[120px] overflow-y-auto scrollbar-thin">
+                {cpmuByProduct.map((p) => (
+                  <div key={p.product} className="flex justify-between items-center">
+                    <span className="truncate max-w-[200px]">{p.product}</span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(100, (p.complaints / (cpmuByProduct[0]?.complaints || 1)) * 100)}%` }} />
+                      </div>
+                      <span className="font-mono font-bold w-8 text-right">{p.complaints}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No data yet</p>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="data-card">
-          <h3 className="metric-label mb-4">Complaint Trend (30 Days)</h3>
+          <h3 className="metric-label mb-4">Complaint Trend (90 Days)</h3>
           {complaintTrend.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={complaintTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
                 <XAxis dataKey="date" tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
                 <YAxis tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(220 18% 12%)",
-                    border: "1px solid hsl(220 14% 18%)",
-                    borderRadius: "8px",
-                    color: "hsl(210 20% 90%)",
-                  }}
-                />
+                <Tooltip contentStyle={{ backgroundColor: "hsl(220 18% 12%)", border: "1px solid hsl(220 14% 18%)", borderRadius: "8px", color: "hsl(210 20% 90%)" }} />
                 <Line type="monotone" dataKey="count" stroke="hsl(210 100% 56%)" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
-              No complaint data yet
-            </div>
+            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">No complaint data yet</div>
           )}
         </div>
 
@@ -272,14 +366,7 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
                 <XAxis dataKey="type" tick={{ fill: "hsl(215 12% 50%)", fontSize: 10 }} angle={-30} textAnchor="end" height={60} />
                 <YAxis tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(220 18% 12%)",
-                    border: "1px solid hsl(220 14% 18%)",
-                    borderRadius: "8px",
-                    color: "hsl(210 20% 90%)",
-                  }}
-                />
+                <Tooltip contentStyle={{ backgroundColor: "hsl(220 18% 12%)", border: "1px solid hsl(220 14% 18%)", borderRadius: "8px", color: "hsl(210 20% 90%)" }} />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {complaintByType.map((_, i) => (
                     <Cell key={i} fill={PARETO_COLORS[i % PARETO_COLORS.length]} />
@@ -288,9 +375,7 @@ const Dashboard = () => {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
-              No complaint data yet
-            </div>
+            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">No complaint data yet</div>
           )}
         </div>
       </div>
@@ -321,9 +406,7 @@ const Dashboard = () => {
             ))}
           </div>
         ) : (
-          <div className="flex h-[100px] items-center justify-center text-muted-foreground text-sm">
-            No CAPAs created yet
-          </div>
+          <div className="flex h-[100px] items-center justify-center text-muted-foreground text-sm">No CAPAs created yet</div>
         )}
       </div>
     </div>
