@@ -65,7 +65,7 @@ const ReportsHub = () => {
           break;
         }
         case "audit_summary": {
-          const { data: audits } = await supabase.from("audits").select("audit_number, title, audit_type, status, score, scheduled_date, completed_date, standard").order("created_at", { ascending: false });
+          const { data: audits } = await supabase.from("audits").select("id, audit_number, title, audit_type, status, score, scheduled_date, completed_date, standard").order("created_at", { ascending: false });
           const { data: findings } = await supabase.from("audit_findings").select("audit_id, severity, status");
           const findingsMap = (findings ?? []).reduce((m: any, f) => { m[f.audit_id] = (m[f.audit_id] || 0) + 1; return m; }, {});
           downloadCSV((audits ?? []).map(a => ({
