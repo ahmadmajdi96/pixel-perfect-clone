@@ -197,7 +197,7 @@ const EnvironmentalMonitoring = () => {
                     <TableCell>{p.emp_zones?.zone_name || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{p.location_description || "—"}</TableCell>
                     <TableCell>{p.surface_type || "—"}</TableCell>
-                    <TableCell><StatusBadge status={p.test_type.replace("_", " ")} /></TableCell>
+                    <TableCell><Badge variant="outline">{p.test_type.replace(/_/g, " ")}</Badge></TableCell>
                     <TableCell>{p.frequency}</TableCell>
                   </TableRow>
                 ))}

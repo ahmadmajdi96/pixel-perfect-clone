@@ -65,6 +65,7 @@ const qualityNav = [
   { title: "Suppliers", url: "/suppliers", icon: Truck },
   { title: "Audits", url: "/audits", icon: ClipboardList },
   { title: "Traceability", url: "/traceability", icon: GitBranch },
+  { title: "EMP", url: "/environmental-monitoring", icon: Microscope },
 ];
 
 const systemNav = [
