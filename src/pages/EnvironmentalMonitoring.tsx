@@ -179,7 +179,16 @@ const EnvironmentalMonitoring = () => {
         </TabsList>
 
         <TabsContent value="zones" className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-3">
+            <TableFilters
+              search={search}
+              onSearchChange={setSearch}
+              searchPlaceholder="Search zones..."
+              filters={zoneFilters}
+              filterValues={filterValues}
+              onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
+              resultCount={filteredZones.length}
+            />
             <Button size="sm" onClick={() => setShowZoneDialog(true)}><Plus className="mr-1 h-4 w-4" />Add Zone</Button>
           </div>
           <div className="data-card overflow-hidden">
