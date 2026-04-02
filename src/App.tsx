@@ -1,12 +1,30 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AppLayout } from "@/components/AppLayout";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import CapaList from "./pages/CapaList";
+import CapaNew from "./pages/CapaNew";
+import CapaDetail from "./pages/CapaDetail";
+import SupplierList from "./pages/SupplierList";
+import SupplierDetail from "./pages/SupplierDetail";
+import ComplaintList from "./pages/ComplaintList";
+import ComplaintNew from "./pages/ComplaintNew";
+import ComplaintDetail from "./pages/ComplaintDetail";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { session, loading } = useAuth();
+  if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading...</div>;
+  if (!session) return <Navigate to="/auth" replace />;
+  return <>{children}</>;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -14,11 +32,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/capa" element={<CapaList />} />
+              <Route path="/capa/new" element={<CapaNew />} />
+              <Route path="/capa/:id" element={<CapaDetail />} />
+              <Route path="/suppliers" element={<SupplierList />} />
+              <Route path="/suppliers/:id" element={<SupplierDetail />} />
+              <Route path="/complaints" element={<ComplaintList />} />
+              <Route path="/complaints/new" element={<ComplaintNew />} />
+              <Route path="/complaints/:id" element={<ComplaintDetail />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
