@@ -13,6 +13,7 @@ import { SeverityBadge } from "@/components/SeverityBadge";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { TableFilters } from "@/components/TableFilters";
 
 const STATUS_COLORS: Record<string, string> = {
   open: "bg-severity-high/15 text-severity-high border border-severity-high/30",
@@ -28,6 +29,7 @@ const DeviationList = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<Record<string, string>>({ severity: "all", status: "all", type: "all" });
   const [form, setForm] = useState({ title: "", type: "process", severity: "medium", description: "", product_affected: "", batch_affected: "" });
 
   useEffect(() => { fetchData(); }, []);
@@ -53,9 +55,14 @@ const DeviationList = () => {
   };
 
   const filtered = deviations.filter((d) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return d.deviation_number.toLowerCase().includes(q) || d.title.toLowerCase().includes(q);
+    if (filters.severity !== "all" && d.severity !== filters.severity) return false;
+    if (filters.status !== "all" && d.status !== filters.status) return false;
+    if (filters.type !== "all" && d.type !== filters.type) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return d.deviation_number.toLowerCase().includes(q) || d.title.toLowerCase().includes(q) || (d.product_affected ?? "").toLowerCase().includes(q);
+    }
+    return true;
   });
 
   return (
@@ -72,27 +79,16 @@ const DeviationList = () => {
             <form onSubmit={createDeviation} className="space-y-4">
               <div className="space-y-2"><Label>Title *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Type</Label>
+                <div className="space-y-2"><Label>Type</Label>
                   <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="process">Process</SelectItem>
-                      <SelectItem value="product">Product</SelectItem>
-                      <SelectItem value="regulatory">Regulatory</SelectItem>
-                    </SelectContent>
+                    <SelectContent><SelectItem value="process">Process</SelectItem><SelectItem value="product">Product</SelectItem><SelectItem value="regulatory">Regulatory</SelectItem></SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Severity</Label>
+                <div className="space-y-2"><Label>Severity</Label>
                   <Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="critical">Critical</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                    </SelectContent>
+                    <SelectContent><SelectItem value="critical">Critical</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="low">Low</SelectItem></SelectContent>
                   </Select>
                 </div>
               </div>
@@ -107,19 +103,25 @@ const DeviationList = () => {
         </Dialog>
       </div>
 
-      <Input placeholder="Search deviations..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
+      <TableFilters
+        search={search} onSearchChange={setSearch}
+        searchPlaceholder="Search by ID, title, or product..."
+        filters={[
+          { key: "severity", label: "Severity", options: [{ value: "critical", label: "Critical" }, { value: "high", label: "High" }, { value: "medium", label: "Medium" }, { value: "low", label: "Low" }] },
+          { key: "status", label: "Status", options: [{ value: "open", label: "Open" }, { value: "investigating", label: "Investigating" }, { value: "dispositioned", label: "Dispositioned" }, { value: "closed", label: "Closed" }] },
+          { key: "type", label: "Type", options: [{ value: "process", label: "Process" }, { value: "product", label: "Product" }, { value: "regulatory", label: "Regulatory" }] },
+        ]}
+        filterValues={filters}
+        onFilterChange={(k, v) => setFilters(f => ({ ...f, [k]: v }))}
+        resultCount={filtered.length}
+      />
 
       <div className="data-card p-0 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Severity</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Product</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>ID</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Severity</TableHead>
+              <TableHead>Status</TableHead><TableHead>Product</TableHead><TableHead>Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/SeverityBadge";
-import { AlertTriangle, MessageSquareWarning, Truck, Plus, ClipboardList, Calendar, TrendingUp, Wheat, GitBranch, ShieldAlert, Wrench } from "lucide-react";
+import { AlertTriangle, MessageSquareWarning, Truck, Plus, Calendar, TrendingUp, Wheat, GitBranch, ShieldAlert, Wrench, ClipboardList, Microscope, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell, ScatterChart, Scatter, ZAxis,
+  BarChart, Bar, Cell, AreaChart, Area, PieChart, Pie,
 } from "recharts";
 import { formatDistanceToNow } from "date-fns";
+import { Progress } from "@/components/ui/progress";
 
 const PARETO_COLORS = [
   "hsl(0 84% 60%)", "hsl(25 95% 53%)", "hsl(48 96% 53%)",
@@ -22,6 +23,8 @@ const RISK_COLORS: Record<string, string> = {
   high: "hsl(25 95% 53%)",
   critical: "hsl(0 84% 60%)",
 };
+
+const TOOLTIP_STYLE = { backgroundColor: "hsl(220 18% 12%)", border: "1px solid hsl(220 14% 18%)", borderRadius: "8px", color: "hsl(210 20% 90%)" };
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -37,127 +40,148 @@ const Dashboard = () => {
   const [cpmuByProduct, setCpmuByProduct] = useState<any[]>([]);
   const [allergenStats, setAllergenStats] = useState({ total: 0, verified: 0, highRisk: 0, riskData: [] as any[] });
   const [traceStats, setTraceStats] = useState({ totalLots: 0, quarantined: 0, recalled: 0, avgRecovery: 0 });
-  const [calibrationStats, setCalibrationStats] = useState({ overdue: 0, dueSoon: 0 });
+  const [calibrationStats, setCalibrationStats] = useState({ overdue: 0, dueSoon: 0, total: 0 });
   const [deviationStats, setDeviationStats] = useState({ open: 0, critical: 0 });
+  const [empStats, setEmpStats] = useState({ pass: 0, fail: 0, pending: 0 });
+  const [auditStats, setAuditStats] = useState({ scheduled: 0, completed: 0, avgScore: 0 });
+  const [docStats, setDocStats] = useState({ total: 0, pendingApproval: 0 });
+  const [trainingStats, setTrainingStats] = useState({ expiringSoon: 0, failRate: 0 });
 
   useEffect(() => { fetchDashboardData(); }, []);
 
   const fetchDashboardData = async () => {
-    // Open CAPAs by severity
-    const { data: capas } = await supabase
-      .from("capas").select("severity, status, created_at, sla_deadline").neq("status", "closure");
-    if (capas) {
-      const summary = { critical: 0, high: 0, medium: 0, low: 0, total: capas.length };
-      let totalDays = 0, overdue = 0;
-      capas.forEach((c) => {
-        if (c.severity in summary) summary[c.severity as keyof typeof summary]++;
-        totalDays += (Date.now() - new Date(c.created_at).getTime()) / 86400000;
-        if (c.sla_deadline && new Date(c.sla_deadline) < new Date()) overdue++;
-      });
-      setCapaSummary(summary);
-      setAvgDaysOpen(capas.length > 0 ? Math.round(totalDays / capas.length) : 0);
-      setOverdueCapas(overdue);
-    }
+    const [
+      capaRes, complaintRes, supplierRes, recentRes, complaintsAll,
+      allergenRes, lotsRes, recallsRes, instrumentsRes, devsRes,
+      empRes, auditRes, docRes, trainingRes,
+    ] = await Promise.all([
+      supabase.from("capas").select("severity, status, created_at, sla_deadline").neq("status", "closure"),
+      supabase.from("complaints").select("*", { count: "exact", head: true }).in("status", ["logged", "investigating"]),
+      supabase.from("suppliers").select("status"),
+      supabase.from("capas").select("*").order("created_at", { ascending: false }).limit(5),
+      supabase.from("complaints").select("created_at, complaint_type, product").gte("created_at", new Date(Date.now() - 90 * 86400000).toISOString()).order("created_at", { ascending: true }),
+      supabase.from("allergen_profiles").select("*"),
+      supabase.from("traceability_lots").select("status"),
+      supabase.from("recall_exercises").select("recovery_rate_pct, status"),
+      supabase.from("calibration_instruments").select("status"),
+      supabase.from("deviations").select("status, severity").in("status", ["open", "investigating"]),
+      supabase.from("emp_sample_results").select("result").limit(200),
+      supabase.from("audits").select("status, score"),
+      supabase.from("documents").select("status"),
+      supabase.from("training_records").select("result, qualification_expiry"),
+    ]);
 
-    // Active complaints
-    const { count } = await supabase.from("complaints").select("*", { count: "exact", head: true }).in("status", ["logged", "investigating"]);
-    setComplaintCount(count ?? 0);
+    // CAPAs
+    const capas = capaRes.data ?? [];
+    const summary = { critical: 0, high: 0, medium: 0, low: 0, total: capas.length };
+    let totalDays = 0, overdue = 0;
+    capas.forEach((c) => {
+      if (c.severity in summary) summary[c.severity as keyof typeof summary]++;
+      totalDays += (Date.now() - new Date(c.created_at).getTime()) / 86400000;
+      if (c.sla_deadline && new Date(c.sla_deadline) < new Date()) overdue++;
+    });
+    setCapaSummary(summary);
+    setAvgDaysOpen(capas.length > 0 ? Math.round(totalDays / capas.length) : 0);
+    setOverdueCapas(overdue);
+    setComplaintCount(complaintRes.count ?? 0);
+    setRecentCapas(recentRes.data ?? []);
 
     // Suppliers
-    const { data: suppliers } = await supabase.from("suppliers").select("status");
-    setSupplierCount(suppliers?.length ?? 0);
-    if (suppliers) {
-      const byStatus: Record<string, number> = {};
-      suppliers.forEach((s) => { byStatus[s.status] = (byStatus[s.status] || 0) + 1; });
-      setSuppliersByStatus(byStatus);
-    }
+    const suppliers = supplierRes.data ?? [];
+    setSupplierCount(suppliers.length);
+    const byStatus: Record<string, number> = {};
+    suppliers.forEach((s) => { byStatus[s.status] = (byStatus[s.status] || 0) + 1; });
+    setSuppliersByStatus(byStatus);
 
-    // Recent CAPAs
-    const { data: recent } = await supabase.from("capas").select("*").order("created_at", { ascending: false }).limit(5);
-    setRecentCapas(recent ?? []);
-
-    // Complaint trend (90 days for better data)
-    const { data: complaints } = await supabase.from("complaints")
-      .select("created_at, complaint_type, product")
-      .gte("created_at", new Date(Date.now() - 90 * 86400000).toISOString())
-      .order("created_at", { ascending: true });
-
-    if (complaints) {
-      const byDay: Record<string, number> = {};
+    // Complaint analytics
+    const complaints = complaintsAll.data ?? [];
+    if (complaints.length) {
+      const byWeek: Record<string, number> = {};
       complaints.forEach((c) => {
-        const day = new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        byDay[day] = (byDay[day] || 0) + 1;
+        const d = new Date(c.created_at);
+        const weekStart = new Date(d);
+        weekStart.setDate(d.getDate() - d.getDay());
+        const key = weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        byWeek[key] = (byWeek[key] || 0) + 1;
       });
-      setComplaintTrend(Object.entries(byDay).map(([date, count]) => ({ date, count })));
+      setComplaintTrend(Object.entries(byWeek).map(([date, count]) => ({ date, count })));
 
       const byType: Record<string, number> = {};
       complaints.forEach((c) => { byType[c.complaint_type] = (byType[c.complaint_type] || 0) + 1; });
-      setComplaintByType(Object.entries(byType)
-        .map(([type, count]) => ({ type: type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), count }))
-        .sort((a, b) => b.count - a.count));
+      setComplaintByType(Object.entries(byType).map(([type, count]) => ({ type: type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), count })).sort((a, b) => b.count - a.count));
 
       const byProduct: Record<string, number> = {};
       complaints.forEach((c) => { byProduct[c.product] = (byProduct[c.product] || 0) + 1; });
-      setCpmuByProduct(Object.entries(byProduct)
-        .map(([product, count]) => ({ product, complaints: count }))
-        .sort((a, b) => b.complaints - a.complaints).slice(0, 8));
+      setCpmuByProduct(Object.entries(byProduct).map(([product, count]) => ({ product, complaints: count })).sort((a, b) => b.complaints - a.complaints).slice(0, 8));
     }
 
-    // Allergen stats
-    const { data: allergens } = await supabase.from("allergen_profiles").select("*");
-    if (allergens) {
+    // Allergens
+    const allergens = allergenRes.data ?? [];
+    if (allergens.length) {
       const riskBuckets = [
         { name: "Low (0-3)", count: allergens.filter(a => (a.cross_contact_risk_score ?? 0) <= 3).length, fill: RISK_COLORS.low },
         { name: "Medium (4-6)", count: allergens.filter(a => (a.cross_contact_risk_score ?? 0) >= 4 && (a.cross_contact_risk_score ?? 0) <= 6).length, fill: RISK_COLORS.medium },
         { name: "High (7-8)", count: allergens.filter(a => (a.cross_contact_risk_score ?? 0) >= 7 && (a.cross_contact_risk_score ?? 0) <= 8).length, fill: RISK_COLORS.high },
         { name: "Critical (9-10)", count: allergens.filter(a => (a.cross_contact_risk_score ?? 0) >= 9).length, fill: RISK_COLORS.critical },
       ];
-      setAllergenStats({
-        total: allergens.length,
-        verified: allergens.filter(a => a.label_status === "verified").length,
-        highRisk: allergens.filter(a => (a.cross_contact_risk_score ?? 0) >= 7).length,
-        riskData: riskBuckets,
-      });
+      setAllergenStats({ total: allergens.length, verified: allergens.filter(a => a.label_status === "verified").length, highRisk: allergens.filter(a => (a.cross_contact_risk_score ?? 0) >= 7).length, riskData: riskBuckets });
     }
 
-    // Traceability stats
-    const { data: lots } = await supabase.from("traceability_lots").select("status");
-    const { data: recalls } = await supabase.from("recall_exercises").select("recovery_rate_pct, status");
-    if (lots) {
-      const completed = recalls?.filter(r => r.recovery_rate_pct != null) ?? [];
-      setTraceStats({
-        totalLots: lots.length,
-        quarantined: lots.filter(l => l.status === "quarantined").length,
-        recalled: lots.filter(l => l.status === "recalled").length,
-        avgRecovery: completed.length > 0 ? Math.round(completed.reduce((s, r) => s + Number(r.recovery_rate_pct), 0) / completed.length * 10) / 10 : 0,
-      });
-    }
+    // Traceability
+    const lots = lotsRes.data ?? [];
+    const recalls = recallsRes.data ?? [];
+    const completed = recalls.filter(r => r.recovery_rate_pct != null);
+    setTraceStats({
+      totalLots: lots.length,
+      quarantined: lots.filter(l => l.status === "quarantined").length,
+      recalled: lots.filter(l => l.status === "recalled").length,
+      avgRecovery: completed.length > 0 ? Math.round(completed.reduce((s, r) => s + Number(r.recovery_rate_pct), 0) / completed.length * 10) / 10 : 0,
+    });
 
     // Calibration
-    const { data: instruments } = await supabase.from("calibration_instruments").select("status");
-    if (instruments) {
-      setCalibrationStats({
-        overdue: instruments.filter(i => i.status === "overdue").length,
-        dueSoon: instruments.filter(i => i.status === "due_soon").length,
-      });
-    }
+    const instruments = instrumentsRes.data ?? [];
+    setCalibrationStats({ overdue: instruments.filter(i => i.status === "overdue").length, dueSoon: instruments.filter(i => i.status === "due_soon").length, total: instruments.length });
 
     // Deviations
-    const { data: devs } = await supabase.from("deviations").select("status, severity").in("status", ["open", "investigating"]);
-    if (devs) {
-      setDeviationStats({
-        open: devs.length,
-        critical: devs.filter(d => d.severity === "critical").length,
-      });
-    }
+    const devs = devsRes.data ?? [];
+    setDeviationStats({ open: devs.length, critical: devs.filter(d => d.severity === "critical").length });
+
+    // EMP
+    const empResults = empRes.data ?? [];
+    setEmpStats({ pass: empResults.filter(r => r.result === "pass").length, fail: empResults.filter(r => r.result === "fail").length, pending: empResults.filter(r => r.result === "pending").length });
+
+    // Audits
+    const audits = auditRes.data ?? [];
+    const completedAudits = audits.filter(a => a.status === "completed" && a.score != null);
+    setAuditStats({
+      scheduled: audits.filter(a => a.status === "scheduled").length,
+      completed: completedAudits.length,
+      avgScore: completedAudits.length > 0 ? Math.round(completedAudits.reduce((s, a) => s + Number(a.score), 0) / completedAudits.length) : 0,
+    });
+
+    // Docs
+    const docs = docRes.data ?? [];
+    setDocStats({ total: docs.length, pendingApproval: docs.filter(d => d.status === "pending_approval").length });
+
+    // Training
+    const training = trainingRes.data ?? [];
+    const thirtyDays = new Date(Date.now() + 30 * 86400000);
+    setTrainingStats({
+      expiringSoon: training.filter(t => t.qualification_expiry && new Date(t.qualification_expiry) < thirtyDays && new Date(t.qualification_expiry) > new Date()).length,
+      failRate: training.length > 0 ? Math.round(training.filter(t => t.result === "fail").length / training.length * 100) : 0,
+    });
   };
+
+  const capaComplianceRate = capaSummary.total > 0 ? Math.round(((capaSummary.total - overdueCapas) / capaSummary.total) * 100) : 100;
+  const empPassRate = (empStats.pass + empStats.fail) > 0 ? Math.round(empStats.pass / (empStats.pass + empStats.fail) * 100) : 100;
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quality Dashboard</h1>
-          <p className="metric-label mt-1">Real-time quality metrics overview</p>
+          <p className="metric-label mt-1">Real-time quality metrics & compliance overview</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => navigate("/complaints/new")} size="sm">
@@ -166,6 +190,40 @@ const Dashboard = () => {
           <Button onClick={() => navigate("/capa/new")} size="sm" variant="outline">
             <Plus className="mr-2 h-4 w-4" />Create CAPA
           </Button>
+        </div>
+      </div>
+
+      {/* Compliance Score Banner */}
+      <div className="data-card bg-gradient-to-r from-card to-secondary/30">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div>
+            <p className="metric-label mb-2">CAPA SLA Compliance</p>
+            <div className="flex items-end gap-2">
+              <span className={`text-3xl font-mono font-bold ${capaComplianceRate >= 90 ? "text-status-closed" : capaComplianceRate >= 70 ? "text-severity-medium" : "text-severity-critical"}`}>{capaComplianceRate}%</span>
+            </div>
+            <Progress value={capaComplianceRate} className="mt-2 h-1.5" />
+          </div>
+          <div>
+            <p className="metric-label mb-2">EMP Pass Rate</p>
+            <div className="flex items-end gap-2">
+              <span className={`text-3xl font-mono font-bold ${empPassRate >= 95 ? "text-status-closed" : empPassRate >= 80 ? "text-severity-medium" : "text-severity-critical"}`}>{empPassRate}%</span>
+            </div>
+            <Progress value={empPassRate} className="mt-2 h-1.5" />
+          </div>
+          <div>
+            <p className="metric-label mb-2">Avg Audit Score</p>
+            <div className="flex items-end gap-2">
+              <span className={`text-3xl font-mono font-bold ${auditStats.avgScore >= 85 ? "text-status-closed" : auditStats.avgScore >= 70 ? "text-severity-medium" : "text-severity-critical"}`}>{auditStats.avgScore || "—"}%</span>
+            </div>
+            <Progress value={auditStats.avgScore} className="mt-2 h-1.5" />
+          </div>
+          <div>
+            <p className="metric-label mb-2">Recall Recovery Avg</p>
+            <div className="flex items-end gap-2">
+              <span className={`text-3xl font-mono font-bold ${traceStats.avgRecovery >= 95 ? "text-status-closed" : traceStats.avgRecovery >= 80 ? "text-severity-medium" : "text-severity-critical"}`}>{traceStats.avgRecovery || "—"}%</span>
+            </div>
+            <Progress value={traceStats.avgRecovery} className="mt-2 h-1.5" />
+          </div>
         </div>
       </div>
 
@@ -213,7 +271,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* KPI Row 2 - Extended */}
+      {/* KPI Row 2 */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="data-card cursor-pointer" onClick={() => navigate("/suppliers")}>
           <div className="flex items-center justify-between mb-3">
@@ -234,14 +292,12 @@ const Dashboard = () => {
             <ShieldAlert className="h-4 w-4 text-severity-high" />
           </div>
           <div className="metric-value">{deviationStats.open}</div>
-          {deviationStats.critical > 0 && (
-            <p className="text-xs text-severity-critical mt-1">{deviationStats.critical} critical</p>
-          )}
+          {deviationStats.critical > 0 && <p className="text-xs text-severity-critical mt-1">{deviationStats.critical} critical</p>}
         </div>
 
         <div className="data-card cursor-pointer" onClick={() => navigate("/calibration")}>
           <div className="flex items-center justify-between mb-3">
-            <span className="metric-label">Calibration Alerts</span>
+            <span className="metric-label">Calibration</span>
             <Wrench className="h-4 w-4 text-severity-medium" />
           </div>
           <div className="flex items-baseline gap-3">
@@ -256,38 +312,141 @@ const Dashboard = () => {
           </div>
         </div>
 
+        <div className="data-card cursor-pointer" onClick={() => navigate("/emp")}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">EMP Results</span>
+            <Microscope className="h-4 w-4 text-primary" />
+          </div>
+          <div className="flex items-baseline gap-3">
+            <div>
+              <span className="metric-value text-status-closed">{empStats.pass}</span>
+              <span className="text-xs text-muted-foreground ml-1">pass</span>
+            </div>
+            <div>
+              <span className="metric-value text-severity-critical">{empStats.fail}</span>
+              <span className="text-xs text-muted-foreground ml-1">fail</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Row 3 - Secondary metrics */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="data-card cursor-pointer" onClick={() => navigate("/traceability")}>
           <div className="flex items-center justify-between mb-3">
             <span className="metric-label">Traceability</span>
             <GitBranch className="h-4 w-4 text-primary" />
           </div>
-          <div className="metric-value">{traceStats.totalLots} lots</div>
+          <div className="metric-value">{traceStats.totalLots}</div>
           <div className="mt-2 flex gap-2 text-xs flex-wrap">
             {traceStats.quarantined > 0 && <span className="text-severity-high">{traceStats.quarantined} quarantined</span>}
             {traceStats.recalled > 0 && <span className="text-severity-critical">{traceStats.recalled} recalled</span>}
-            {traceStats.avgRecovery > 0 && <span className="text-status-closed">{traceStats.avgRecovery}% avg recovery</span>}
+          </div>
+        </div>
+
+        <div className="data-card cursor-pointer" onClick={() => navigate("/audits")}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">Audits</span>
+            <ClipboardList className="h-4 w-4 text-primary" />
+          </div>
+          <div className="flex items-baseline gap-3">
+            <div>
+              <span className="metric-value">{auditStats.scheduled}</span>
+              <span className="text-xs text-muted-foreground ml-1">upcoming</span>
+            </div>
+            <div>
+              <span className="metric-value text-status-closed">{auditStats.completed}</span>
+              <span className="text-xs text-muted-foreground ml-1">done</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="data-card cursor-pointer" onClick={() => navigate("/documents")}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">Documents</span>
+            <Activity className="h-4 w-4 text-primary" />
+          </div>
+          <div className="metric-value">{docStats.total}</div>
+          {docStats.pendingApproval > 0 && <p className="text-xs text-severity-medium mt-1">{docStats.pendingApproval} pending approval</p>}
+        </div>
+
+        <div className="data-card cursor-pointer" onClick={() => navigate("/allergens")}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="metric-label">Allergen Risk</span>
+            <Wheat className="h-4 w-4 text-severity-medium" />
+          </div>
+          <div className="flex items-baseline gap-3">
+            <div>
+              <span className="metric-value">{allergenStats.total}</span>
+              <span className="text-xs text-muted-foreground ml-1">profiles</span>
+            </div>
+            {allergenStats.highRisk > 0 && (
+              <div>
+                <span className="metric-value text-severity-critical">{allergenStats.highRisk}</span>
+                <span className="text-xs text-muted-foreground ml-1">high risk</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Allergen Risk + CAPA Severity */}
+      {/* Charts Row 1 */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="data-card cursor-pointer" onClick={() => navigate("/allergens")}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="metric-label">Allergen Cross-Contact Risk</h3>
-            <Wheat className="h-4 w-4 text-severity-medium" />
-          </div>
-          <div className="flex items-center gap-6 mb-4">
-            <div><span className="text-2xl font-bold">{allergenStats.total}</span><span className="text-xs text-muted-foreground ml-1">profiles</span></div>
-            <div><span className="text-2xl font-bold text-status-closed">{allergenStats.verified}</span><span className="text-xs text-muted-foreground ml-1">verified</span></div>
-            <div><span className="text-2xl font-bold text-severity-critical">{allergenStats.highRisk}</span><span className="text-xs text-muted-foreground ml-1">high risk</span></div>
-          </div>
-          {allergenStats.riskData.length > 0 && (
-            <ResponsiveContainer width="100%" height={160}>
+        <div className="data-card">
+          <h3 className="metric-label mb-4">Complaint Trend (90 Days — Weekly)</h3>
+          {complaintTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart data={complaintTrend}>
+                <defs>
+                  <linearGradient id="complaintGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(210 100% 56%)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(210 100% 56%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
+                <XAxis dataKey="date" tick={{ fill: "hsl(215 12% 50%)", fontSize: 10 }} />
+                <YAxis tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Area type="monotone" dataKey="count" stroke="hsl(210 100% 56%)" strokeWidth={2} fill="url(#complaintGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">No complaint data yet</div>
+          )}
+        </div>
+
+        <div className="data-card">
+          <h3 className="metric-label mb-4">Complaint Type Pareto</h3>
+          {complaintByType.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={complaintByType}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
+                <XAxis dataKey="type" tick={{ fill: "hsl(215 12% 50%)", fontSize: 10 }} angle={-30} textAnchor="end" height={60} />
+                <YAxis tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {complaintByType.map((_, i) => (
+                    <Cell key={i} fill={PARETO_COLORS[i % PARETO_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">No complaint data yet</div>
+          )}
+        </div>
+      </div>
+
+      {/* Charts Row 2 */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="data-card">
+          <h3 className="metric-label mb-4">Allergen Cross-Contact Risk Distribution</h3>
+          {allergenStats.riskData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={allergenStats.riskData} layout="vertical">
                 <XAxis type="number" tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
                 <YAxis type="category" dataKey="name" tick={{ fill: "hsl(215 12% 50%)", fontSize: 10 }} width={90} />
-                <Tooltip contentStyle={{ backgroundColor: "hsl(220 18% 12%)", border: "1px solid hsl(220 14% 18%)", borderRadius: "8px", color: "hsl(210 20% 90%)" }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                   {allergenStats.riskData.map((d: any, i: number) => (
                     <Cell key={i} fill={d.fill} />
@@ -295,14 +454,16 @@ const Dashboard = () => {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[200px] items-center justify-center text-muted-foreground text-sm">No allergen data</div>
           )}
         </div>
 
         <div className="data-card">
           <h3 className="metric-label mb-4">CAPA by Severity</h3>
           <div className="space-y-3">
-            {["critical", "high", "medium", "low"].map((sev) => {
-              const count = capaSummary[sev as keyof typeof capaSummary] as number;
+            {(["critical", "high", "medium", "low"] as const).map((sev) => {
+              const count = capaSummary[sev] as number;
               const maxCount = Math.max(capaSummary.critical, capaSummary.high, capaSummary.medium, capaSummary.low, 1);
               return (
                 <div key={sev} className="flex items-center gap-3">
@@ -315,7 +476,6 @@ const Dashboard = () => {
               );
             })}
           </div>
-          {/* CPMU mini table */}
           <div className="mt-6">
             <p className="metric-label mb-2">CPMU by Product (90d)</p>
             {cpmuByProduct.length > 0 ? (
@@ -339,58 +499,13 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="data-card">
-          <h3 className="metric-label mb-4">Complaint Trend (90 Days)</h3>
-          {complaintTrend.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={complaintTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
-                <XAxis dataKey="date" tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
-                <YAxis tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
-                <Tooltip contentStyle={{ backgroundColor: "hsl(220 18% 12%)", border: "1px solid hsl(220 14% 18%)", borderRadius: "8px", color: "hsl(210 20% 90%)" }} />
-                <Line type="monotone" dataKey="count" stroke="hsl(210 100% 56%)" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">No complaint data yet</div>
-          )}
-        </div>
-
-        <div className="data-card">
-          <h3 className="metric-label mb-4">Complaint Type Pareto</h3>
-          {complaintByType.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={complaintByType}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
-                <XAxis dataKey="type" tick={{ fill: "hsl(215 12% 50%)", fontSize: 10 }} angle={-30} textAnchor="end" height={60} />
-                <YAxis tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }} />
-                <Tooltip contentStyle={{ backgroundColor: "hsl(220 18% 12%)", border: "1px solid hsl(220 14% 18%)", borderRadius: "8px", color: "hsl(210 20% 90%)" }} />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {complaintByType.map((_, i) => (
-                    <Cell key={i} fill={PARETO_COLORS[i % PARETO_COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">No complaint data yet</div>
-          )}
-        </div>
-      </div>
-
       {/* Recent CAPAs */}
       <div className="data-card">
         <h3 className="metric-label mb-4">Recent CAPAs</h3>
         {recentCapas.length > 0 ? (
           <div className="space-y-3">
             {recentCapas.map((capa) => (
-              <div
-                key={capa.id}
-                className="flex items-center justify-between rounded-lg border border-border p-3 cursor-pointer hover:border-primary/30 transition-colors"
-                onClick={() => navigate(`/capa/${capa.id}`)}
-              >
+              <div key={capa.id} className="flex items-center justify-between rounded-lg border border-border p-3 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => navigate(`/capa/${capa.id}`)}>
                 <div className="flex items-center gap-4">
                   <p className="font-mono font-medium text-sm">{capa.capa_number}</p>
                   <p className="text-sm text-muted-foreground truncate max-w-[300px]">{capa.title}</p>

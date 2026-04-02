@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { TableFilters } from "@/components/TableFilters";
 
 const RISK_COLORS = (score: number) => {
   if (score >= 15) return "bg-severity-critical/20 text-severity-critical font-bold";
@@ -24,6 +25,8 @@ const RiskRegister = () => {
   const [risks, setRisks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<Record<string, string>>({ category: "all", status: "all" });
   const [form, setForm] = useState({
     category: "HACCP", description: "", likelihood: "3", severity: "3",
     control_measures: "", residual_likelihood: "2", residual_severity: "2", owner: "", review_date: "",
@@ -109,6 +112,14 @@ const RiskRegister = () => {
         </Dialog>
       </div>
 
+      <TableFilters search={search} onSearchChange={setSearch} searchPlaceholder="Search risks..."
+        filters={[
+          { key: "category", label: "Category", options: ["HACCP", "TACCP", "VACCP", "Supply Chain", "Facility", "Regulatory"].map(c => ({ value: c, label: c })) },
+          { key: "status", label: "Status", options: [{ value: "active", label: "Active" }, { value: "mitigated", label: "Mitigated" }, { value: "closed", label: "Closed" }] },
+        ]}
+        filterValues={filters} onFilterChange={(k, v) => setFilters(f => ({ ...f, [k]: v }))}
+      />
+
       {/* Risk Heatmap */}
       <div className="data-card">
         <h3 className="metric-label mb-4">Risk Heatmap (Likelihood × Severity)</h3>
@@ -163,9 +174,16 @@ const RiskRegister = () => {
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-            ) : risks.length === 0 ? (
+            ) : (() => {
+              const filteredRisks = risks.filter(r => {
+                if (filters.category !== "all" && r.category !== filters.category) return false;
+                if (filters.status !== "all" && r.status !== filters.status) return false;
+                if (search) { const q = search.toLowerCase(); return r.description.toLowerCase().includes(q) || (r.owner ?? "").toLowerCase().includes(q) || r.category.toLowerCase().includes(q); }
+                return true;
+              });
+              return filteredRisks.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No risks registered</TableCell></TableRow>
-            ) : risks.map((r) => (
+            ) : filteredRisks.map((r) => (
               <TableRow key={r.id}>
                 <TableCell><span className="text-xs font-semibold uppercase">{r.category}</span></TableCell>
                 <TableCell className="max-w-[250px] truncate">{r.description}</TableCell>
@@ -181,7 +199,8 @@ const RiskRegister = () => {
                   ) : "—"}
                 </TableCell>
               </TableRow>
-            ))}
+              ));
+            })()}
           </TableBody>
         </Table>
       </div>
