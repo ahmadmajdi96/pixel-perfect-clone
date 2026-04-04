@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, ShieldAlert } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { TableFilters } from "@/components/TableFilters";
@@ -27,6 +27,7 @@ const RiskRegister = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({ category: "all", status: "all" });
+  const [selected, setSelected] = useState<any>(null);
   const [form, setForm] = useState({
     category: "HACCP", description: "", likelihood: "3", severity: "3",
     control_measures: "", residual_likelihood: "2", residual_severity: "2", owner: "", review_date: "",
@@ -59,11 +60,14 @@ const RiskRegister = () => {
     fetchData();
   };
 
-  // Build 5x5 heatmap data
   const heatmapCounts: Record<string, number> = {};
-  risks.forEach((r) => {
-    const key = `${r.likelihood}-${r.severity}`;
-    heatmapCounts[key] = (heatmapCounts[key] || 0) + 1;
+  risks.forEach((r) => { const key = `${r.likelihood}-${r.severity}`; heatmapCounts[key] = (heatmapCounts[key] || 0) + 1; });
+
+  const filteredRisks = risks.filter(r => {
+    if (filters.category !== "all" && r.category !== filters.category) return false;
+    if (filters.status !== "all" && r.status !== filters.status) return false;
+    if (search) { const q = search.toLowerCase(); return r.description.toLowerCase().includes(q) || (r.owner ?? "").toLowerCase().includes(q) || r.category.toLowerCase().includes(q); }
+    return true;
   });
 
   return (
@@ -102,8 +106,8 @@ const RiskRegister = () => {
               </div>
               <div className="space-y-2"><Label>Control Measures</Label><Textarea value={form.control_measures} onChange={(e) => setForm({ ...form, control_measures: e.target.value })} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Residual Likelihood (1-5)</Label><Input type="number" min="1" max="5" value={form.residual_likelihood} onChange={(e) => setForm({ ...form, residual_likelihood: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Residual Severity (1-5)</Label><Input type="number" min="1" max="5" value={form.residual_severity} onChange={(e) => setForm({ ...form, residual_severity: e.target.value })} /></div>
+                <div className="space-y-2"><Label>Residual Likelihood</Label><Input type="number" min="1" max="5" value={form.residual_likelihood} onChange={(e) => setForm({ ...form, residual_likelihood: e.target.value })} /></div>
+                <div className="space-y-2"><Label>Residual Severity</Label><Input type="number" min="1" max="5" value={form.residual_severity} onChange={(e) => setForm({ ...form, residual_severity: e.target.value })} /></div>
               </div>
               <div className="space-y-2"><Label>Review Date</Label><Input type="date" value={form.review_date} onChange={(e) => setForm({ ...form, review_date: e.target.value })} /></div>
               <Button type="submit" className="w-full">Add Risk</Button>
@@ -120,7 +124,6 @@ const RiskRegister = () => {
         filterValues={filters} onFilterChange={(k, v) => setFilters(f => ({ ...f, [k]: v }))}
       />
 
-      {/* Risk Heatmap */}
       <div className="data-card">
         <h3 className="metric-label mb-4">Risk Heatmap (Likelihood × Severity)</h3>
         <div className="overflow-x-auto">
@@ -162,29 +165,16 @@ const RiskRegister = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Category</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>L×S</TableHead>
-              <TableHead>Risk Score</TableHead>
-              <TableHead>Residual</TableHead>
-              <TableHead>Owner</TableHead>
-              <TableHead>Review</TableHead>
+              <TableHead>Category</TableHead><TableHead>Description</TableHead><TableHead>L×S</TableHead><TableHead>Risk Score</TableHead><TableHead>Residual</TableHead><TableHead>Owner</TableHead><TableHead>Review</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-            ) : (() => {
-              const filteredRisks = risks.filter(r => {
-                if (filters.category !== "all" && r.category !== filters.category) return false;
-                if (filters.status !== "all" && r.status !== filters.status) return false;
-                if (search) { const q = search.toLowerCase(); return r.description.toLowerCase().includes(q) || (r.owner ?? "").toLowerCase().includes(q) || r.category.toLowerCase().includes(q); }
-                return true;
-              });
-              return filteredRisks.length === 0 ? (
+            ) : filteredRisks.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No risks registered</TableCell></TableRow>
             ) : filteredRisks.map((r) => (
-              <TableRow key={r.id}>
+              <TableRow key={r.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected(r)}>
                 <TableCell><span className="text-xs font-semibold uppercase">{r.category}</span></TableCell>
                 <TableCell className="max-w-[250px] truncate">{r.description}</TableCell>
                 <TableCell className="font-mono text-sm">{r.likelihood}×{r.severity}</TableCell>
@@ -199,11 +189,35 @@ const RiskRegister = () => {
                   ) : "—"}
                 </TableCell>
               </TableRow>
-              ));
-            })()}
+            ))}
           </TableBody>
         </Table>
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">Risk Detail: {selected.category}</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div><span className="text-muted-foreground">Category:</span> <span className="ml-2 uppercase font-bold">{selected.category}</span></div>
+            <div><span className="text-muted-foreground">Owner:</span> <span className="ml-2">{selected.owner ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+            <div><span className="text-muted-foreground">Likelihood:</span> <span className="ml-2">{selected.likelihood}/5</span></div>
+            <div><span className="text-muted-foreground">Severity:</span> <span className="ml-2">{selected.severity}/5</span></div>
+            <div><span className="text-muted-foreground">Risk Score:</span> <span className={`ml-2 font-bold ${selected.risk_score >= 15 ? "text-severity-critical" : "text-severity-medium"}`}>{selected.risk_score}</span></div>
+            <div><span className="text-muted-foreground">Residual L:</span> <span className="ml-2">{selected.residual_likelihood}/5</span></div>
+            <div><span className="text-muted-foreground">Residual S:</span> <span className="ml-2">{selected.residual_severity}/5</span></div>
+            <div><span className="text-muted-foreground">Residual Score:</span> <span className="ml-2">{selected.residual_risk_score}</span></div>
+            {selected.review_date && <div><span className="text-muted-foreground">Review Date:</span> <span className={`ml-2 ${new Date(selected.review_date) < new Date() ? "text-severity-critical" : ""}`}>{format(new Date(selected.review_date), "PPP")}</span></div>}
+          </div>
+          <div className="mt-3 space-y-2 text-sm">
+            <div className="p-3 rounded bg-accent/30"><span className="text-muted-foreground font-medium">Description:</span> <span className="ml-2">{selected.description}</span></div>
+            {selected.control_measures && <div className="p-3 rounded bg-accent/30"><span className="text-muted-foreground font-medium">Control Measures:</span> <span className="ml-2">{selected.control_measures}</span></div>}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

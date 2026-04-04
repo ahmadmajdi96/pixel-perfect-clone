@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, ClipboardCheck, AlertTriangle } from "lucide-react";
+import { Plus, ClipboardCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -14,6 +14,7 @@ const GmpInspections = () => {
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -77,22 +78,10 @@ const GmpInspections = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="data-card text-center">
-          <p className="metric-label">Total Inspections</p>
-          <p className="text-2xl font-bold mt-1">{inspections.length}</p>
-        </div>
-        <div className="data-card text-center">
-          <p className="metric-label">Avg Score</p>
-          <p className="text-2xl font-bold mt-1">{avgScore}%</p>
-        </div>
-        <div className="data-card text-center">
-          <p className="metric-label">Critical Failures</p>
-          <p className="text-2xl font-bold text-severity-critical mt-1">{inspections.reduce((a, b) => a + (b.critical_fail_count ?? 0), 0)}</p>
-        </div>
-        <div className="data-card text-center">
-          <p className="metric-label">Scheduled</p>
-          <p className="text-2xl font-bold mt-1">{inspections.filter(i => i.status === "scheduled").length}</p>
-        </div>
+        <div className="data-card text-center"><p className="metric-label">Total Inspections</p><p className="text-2xl font-bold mt-1">{inspections.length}</p></div>
+        <div className="data-card text-center"><p className="metric-label">Avg Score</p><p className="text-2xl font-bold mt-1">{avgScore}%</p></div>
+        <div className="data-card text-center"><p className="metric-label">Critical Failures</p><p className="text-2xl font-bold text-severity-critical mt-1">{inspections.reduce((a, b) => a + (b.critical_fail_count ?? 0), 0)}</p></div>
+        <div className="data-card text-center"><p className="metric-label">Scheduled</p><p className="text-2xl font-bold mt-1">{inspections.filter(i => i.status === "scheduled").length}</p></div>
       </div>
 
       <Input placeholder="Search by area or type..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
@@ -100,17 +89,11 @@ const GmpInspections = () => {
       <div className="data-card p-0 overflow-hidden">
         <Table>
           <TableHeader><TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>Area</TableHead>
-            <TableHead>Inspector</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Score</TableHead>
-            <TableHead>Fails</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Type</TableHead><TableHead>Area</TableHead><TableHead>Inspector</TableHead><TableHead>Date</TableHead><TableHead>Score</TableHead><TableHead>Fails</TableHead><TableHead>Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {filtered.map(i => (
-              <TableRow key={i.id}>
+              <TableRow key={i.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected(i)}>
                 <TableCell className="font-medium">{i.inspection_type?.replace("_", " ")}</TableCell>
                 <TableCell>{i.area}</TableCell>
                 <TableCell>{i.inspector_name ?? "—"}</TableCell>
@@ -128,6 +111,28 @@ const GmpInspections = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">Inspection Detail: {selected.area}</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div><span className="text-muted-foreground">Type:</span> <span className="ml-2 font-medium capitalize">{selected.inspection_type?.replace("_", " ")}</span></div>
+            <div><span className="text-muted-foreground">Area:</span> <span className="ml-2">{selected.area}</span></div>
+            <div><span className="text-muted-foreground">Inspector:</span> <span className="ml-2">{selected.inspector_name ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Scheduled:</span> <span className="ml-2">{selected.scheduled_date ? format(new Date(selected.scheduled_date), "PPP") : "TBD"}</span></div>
+            <div><span className="text-muted-foreground">Completed:</span> <span className="ml-2">{selected.completed_date ? format(new Date(selected.completed_date), "PPP") : "—"}</span></div>
+            <div><span className="text-muted-foreground">Score:</span> <span className={`ml-2 font-bold ${Number(selected.score_pct) >= 95 ? "text-status-closed" : Number(selected.score_pct) >= 80 ? "text-severity-medium" : "text-severity-critical"}`}>{selected.score_pct ?? "—"}%</span></div>
+            <div><span className="text-muted-foreground">Pass Count:</span> <span className="ml-2">{selected.pass_count ?? 0}</span></div>
+            <div><span className="text-muted-foreground">Fail Count:</span> <span className="ml-2">{selected.fail_count ?? 0}</span></div>
+            <div><span className="text-muted-foreground">Critical Fails:</span> <span className="ml-2 text-severity-critical font-bold">{selected.critical_fail_count ?? 0}</span></div>
+            <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+          </div>
+          {selected.notes && <p className="text-sm text-muted-foreground mt-3 p-3 rounded bg-accent/30">{selected.notes}</p>}
+        </div>
+      )}
     </div>
   );
 };

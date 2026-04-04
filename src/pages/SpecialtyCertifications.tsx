@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Award } from "lucide-react";
+import { Plus, Award, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -14,6 +14,7 @@ const SpecialtyCertifications = () => {
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -90,7 +91,7 @@ const SpecialtyCertifications = () => {
           </TableRow></TableHeader>
           <TableBody>
             {filtered.map(c => (
-              <TableRow key={c.id}>
+              <TableRow key={c.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected(c)}>
                 <TableCell className="font-medium capitalize">{c.certification_type?.replace("_", " ")}</TableCell>
                 <TableCell>{c.certifying_body}</TableCell>
                 <TableCell className="font-mono text-xs">{c.certificate_number ?? "—"}</TableCell>
@@ -103,6 +104,26 @@ const SpecialtyCertifications = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">Certification Detail</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div><span className="text-muted-foreground">Type:</span> <span className="ml-2 capitalize font-medium">{selected.certification_type?.replace("_", " ")}</span></div>
+            <div><span className="text-muted-foreground">Certifying Body:</span> <span className="ml-2">{selected.certifying_body}</span></div>
+            <div><span className="text-muted-foreground">Certificate #:</span> <span className="ml-2 font-mono">{selected.certificate_number ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Scope:</span> <span className="ml-2">{selected.product_scope ?? "All products"}</span></div>
+            <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+            {selected.expiry_date && <div><span className="text-muted-foreground">Expiry:</span> <span className={`ml-2 ${new Date(selected.expiry_date) < new Date() ? "text-severity-critical font-bold" : ""}`}>{format(new Date(selected.expiry_date), "PPP")}</span></div>}
+            {selected.issued_date && <div><span className="text-muted-foreground">Issued:</span> <span className="ml-2">{format(new Date(selected.issued_date), "PPP")}</span></div>}
+            {selected.audit_date && <div><span className="text-muted-foreground">Last Audit:</span> <span className="ml-2">{format(new Date(selected.audit_date), "PPP")}</span></div>}
+          </div>
+          {selected.notes && <p className="text-sm text-muted-foreground mt-3 p-3 rounded bg-accent/30">{selected.notes}</p>}
+        </div>
+      )}
     </div>
   );
 };

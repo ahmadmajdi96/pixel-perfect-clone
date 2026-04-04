@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, TrendingUp, Target } from "lucide-react";
+import { Plus, TrendingUp, Target, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -22,6 +22,7 @@ const ContinuousImprovement = () => {
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -108,7 +109,7 @@ const ContinuousImprovement = () => {
           </TableRow></TableHeader>
           <TableBody>
             {filtered.map(p => (
-              <TableRow key={p.id}>
+              <TableRow key={p.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected(p)}>
                 <TableCell className="font-medium">{p.title}</TableCell>
                 <TableCell className="uppercase text-xs">{p.methodology}</TableCell>
                 <TableCell>{p.category}</TableCell>
@@ -121,6 +122,30 @@ const ContinuousImprovement = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">Project Detail: {selected.title}</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div><span className="text-muted-foreground">Methodology:</span> <span className="ml-2 uppercase">{selected.methodology}</span></div>
+            <div><span className="text-muted-foreground">Category:</span> <span className="ml-2 capitalize">{selected.category}</span></div>
+            <div><span className="text-muted-foreground">Owner:</span> <span className="ml-2">{selected.owner ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Stage:</span> <span className="ml-2 uppercase">{selected.status}</span></div>
+            <div><span className="text-muted-foreground">Target Metric:</span> <span className="ml-2">{selected.target_metric ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Baseline:</span> <span className="ml-2">{selected.baseline_value ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Target:</span> <span className="ml-2">{selected.target_value ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Current:</span> <span className="ml-2 font-bold">{selected.current_value ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Est. Savings:</span> <span className="ml-2">{selected.savings_estimated ? `$${Number(selected.savings_estimated).toLocaleString()}` : "—"}</span></div>
+            <div><span className="text-muted-foreground">Actual Savings:</span> <span className="ml-2 text-status-closed font-bold">{selected.savings_actual ? `$${Number(selected.savings_actual).toLocaleString()}` : "—"}</span></div>
+            {selected.start_date && <div><span className="text-muted-foreground">Start:</span> <span className="ml-2">{format(new Date(selected.start_date), "PPP")}</span></div>}
+            {selected.target_completion && <div><span className="text-muted-foreground">Target Completion:</span> <span className="ml-2">{format(new Date(selected.target_completion), "PPP")}</span></div>}
+          </div>
+          {selected.description && <p className="text-sm text-muted-foreground mt-3 p-3 rounded bg-accent/30">{selected.description}</p>}
+        </div>
+      )}
     </div>
   );
 };

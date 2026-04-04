@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Droplets } from "lucide-react";
+import { Droplets, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -14,6 +14,7 @@ const WaterQuality = () => {
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -91,7 +92,7 @@ const WaterQuality = () => {
           </TableRow></TableHeader>
           <TableBody>
             {filtered.map(t => (
-              <TableRow key={t.id}>
+              <TableRow key={t.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected(t)}>
                 <TableCell className="font-medium">{t.test_type?.replace("_", " ")}</TableCell>
                 <TableCell>{t.sampling_point}</TableCell>
                 <TableCell className="text-xs">{format(new Date(t.test_date), "PP")}</TableCell>
@@ -103,6 +104,25 @@ const WaterQuality = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">Test Detail: {selected.test_type?.replace("_", " ")}</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div><span className="text-muted-foreground">Test Type:</span> <span className="ml-2 capitalize">{selected.test_type?.replace("_", " ")}</span></div>
+            <div><span className="text-muted-foreground">Sampling Point:</span> <span className="ml-2">{selected.sampling_point}</span></div>
+            <div><span className="text-muted-foreground">Date:</span> <span className="ml-2">{format(new Date(selected.test_date), "PPP")}</span></div>
+            <div><span className="text-muted-foreground">Result:</span> <span className={`ml-2 font-bold ${selected.result === "pass" ? "text-status-closed" : "text-severity-critical"}`}>{selected.result}</span></div>
+            <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+            {selected.value && <div><span className="text-muted-foreground">Value:</span> <span className="ml-2">{selected.value} {selected.unit ?? ""}</span></div>}
+            {selected.corrective_action && <div className="col-span-full"><span className="text-muted-foreground">Corrective Action:</span> <span className="ml-2">{selected.corrective_action}</span></div>}
+            {selected.notes && <div className="col-span-full"><span className="text-muted-foreground">Notes:</span> <span className="ml-2">{selected.notes}</span></div>}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

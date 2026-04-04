@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, TestTube } from "lucide-react";
+import { Plus, TestTube, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -21,6 +21,7 @@ const ProductTesting = () => {
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -102,7 +103,7 @@ const ProductTesting = () => {
           </TableRow></TableHeader>
           <TableBody>
             {filtered.map(t => (
-              <TableRow key={t.id}>
+              <TableRow key={t.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected(t)}>
                 <TableCell className="font-medium">{t.product_name}</TableCell>
                 <TableCell className="font-mono text-xs">{t.batch_number ?? "—"}</TableCell>
                 <TableCell>{t.test_type?.replace("_", " ")}</TableCell>
@@ -115,6 +116,28 @@ const ProductTesting = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">Test Detail: {selected.product_name}</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div><span className="text-muted-foreground">Product Code:</span> <span className="ml-2 font-medium">{selected.product_code ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Batch:</span> <span className="ml-2 font-mono">{selected.batch_number ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Test Type:</span> <span className="ml-2">{selected.test_type?.replace("_", " ")}</span></div>
+            <div><span className="text-muted-foreground">Sampling Point:</span> <span className="ml-2">{selected.sampling_point?.replace("_", " ")}</span></div>
+            <div><span className="text-muted-foreground">Result:</span> <span className={`ml-2 font-bold ${selected.result === "pass" ? "text-status-closed" : selected.result === "fail" ? "text-severity-critical" : "text-severity-medium"}`}>{selected.result}</span></div>
+            <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+            <div><span className="text-muted-foreground">Lab Reference:</span> <span className="ml-2 font-mono">{selected.lab_reference ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Frequency:</span> <span className="ml-2">{selected.test_frequency ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Created:</span> <span className="ml-2">{format(new Date(selected.created_at), "PPP")}</span></div>
+            {selected.last_tested_date && <div><span className="text-muted-foreground">Last Tested:</span> <span className="ml-2">{format(new Date(selected.last_tested_date), "PPP")}</span></div>}
+            {selected.next_due_date && <div><span className="text-muted-foreground">Next Due:</span> <span className="ml-2">{format(new Date(selected.next_due_date), "PPP")}</span></div>}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
