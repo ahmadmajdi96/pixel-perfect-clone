@@ -58,7 +58,7 @@ const SpecialtyCertifications = () => {
             <form onSubmit={handleCreate} className="space-y-3">
               <div><Label>Type</Label>
                 <select name="certification_type" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
-                  <option value="kosher">Kosher</option>
+                  <option value="halal">Halal</option>
                   <option value="halal">Halal</option>
                   <option value="organic">Organic</option>
                   <option value="non_gmo">Non-GMO</option>
