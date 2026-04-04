@@ -36,6 +36,18 @@ import TraceabilityRecall from "./pages/TraceabilityRecall";
 import ReportsHub from "./pages/ReportsHub";
 import Administration from "./pages/Administration";
 import EnvironmentalMonitoring from "./pages/EnvironmentalMonitoring";
+import RegulatoryCompliance from "./pages/RegulatoryCompliance";
+import ManagementReview from "./pages/ManagementReview";
+import PestControl from "./pages/PestControl";
+import ProductSpecifications from "./pages/ProductSpecifications";
+import FoodDefence from "./pages/FoodDefence";
+import GmpInspections from "./pages/GmpInspections";
+import GlassControl from "./pages/GlassControl";
+import ProductTesting from "./pages/ProductTesting";
+import WaterQuality from "./pages/WaterQuality";
+import SpecialtyCertifications from "./pages/SpecialtyCertifications";
+import ContinuousImprovement from "./pages/ContinuousImprovement";
+import UnifiedDashboard from "./pages/UnifiedDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,6 +100,18 @@ const App = () => (
               <Route path="/reports" element={<ReportsHub />} />
               <Route path="/admin" element={<Administration />} />
               <Route path="/environmental-monitoring" element={<EnvironmentalMonitoring />} />
+              <Route path="/regulatory" element={<RegulatoryCompliance />} />
+              <Route path="/management-review" element={<ManagementReview />} />
+              <Route path="/pest-control" element={<PestControl />} />
+              <Route path="/specifications" element={<ProductSpecifications />} />
+              <Route path="/food-defence" element={<FoodDefence />} />
+              <Route path="/gmp-inspections" element={<GmpInspections />} />
+              <Route path="/glass-control" element={<GlassControl />} />
+              <Route path="/product-testing" element={<ProductTesting />} />
+              <Route path="/water-quality" element={<WaterQuality />} />
+              <Route path="/certifications" element={<SpecialtyCertifications />} />
+              <Route path="/continuous-improvement" element={<ContinuousImprovement />} />
+              <Route path="/unified-dashboard" element={<UnifiedDashboard />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
