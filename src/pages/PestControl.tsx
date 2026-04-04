@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Bug, MapPin, AlertTriangle } from "lucide-react";
+import { Plus, Bug, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -22,6 +22,7 @@ const PestControl = () => {
   const [tab, setTab] = useState<"sightings" | "stations">("sightings");
   const [showDialog, setShowDialog] = useState(false);
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -83,24 +84,14 @@ const PestControl = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="data-card text-center">
-          <p className="metric-label">Total Sightings (30d)</p>
-          <p className="text-2xl font-bold mt-1">{sightings.length}</p>
-        </div>
-        <div className="data-card text-center">
-          <p className="metric-label">High Activity</p>
-          <p className="text-2xl font-bold text-severity-critical mt-1">{sightings.filter(s => s.activity_level === "high").length}</p>
-        </div>
-        <div className="data-card text-center">
-          <MapPin className="h-5 w-5 mx-auto text-primary" />
-          <p className="metric-label mt-1">Bait Stations</p>
-          <p className="text-2xl font-bold mt-1">{stations.length}</p>
-        </div>
+        <div className="data-card text-center"><p className="metric-label">Total Sightings</p><p className="text-2xl font-bold mt-1">{sightings.length}</p></div>
+        <div className="data-card text-center"><p className="metric-label">High Activity</p><p className="text-2xl font-bold text-severity-critical mt-1">{sightings.filter(s => s.activity_level === "high").length}</p></div>
+        <div className="data-card text-center"><MapPin className="h-5 w-5 mx-auto text-primary" /><p className="metric-label mt-1">Bait Stations</p><p className="text-2xl font-bold mt-1">{stations.length}</p></div>
       </div>
 
       <div className="flex gap-2">
-        <Button variant={tab === "sightings" ? "default" : "outline"} size="sm" onClick={() => setTab("sightings")}>Pest Sightings</Button>
-        <Button variant={tab === "stations" ? "default" : "outline"} size="sm" onClick={() => setTab("stations")}>Bait Stations</Button>
+        <Button variant={tab === "sightings" ? "default" : "outline"} size="sm" onClick={() => { setTab("sightings"); setSelected(null); }}>Pest Sightings</Button>
+        <Button variant={tab === "stations" ? "default" : "outline"} size="sm" onClick={() => { setTab("stations"); setSelected(null); }}>Bait Stations</Button>
       </div>
 
       <Input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
@@ -109,15 +100,11 @@ const PestControl = () => {
         {tab === "sightings" ? (
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Pest Type</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Activity</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Date</TableHead><TableHead>Pest Type</TableHead><TableHead>Location</TableHead><TableHead>Activity</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {(filtered as any[]).map(s => (
-                <TableRow key={s.id}>
+                <TableRow key={s.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected({ ...s, _type: "sighting" })}>
                   <TableCell className="text-xs">{format(new Date(s.sighting_date), "PP")}</TableCell>
                   <TableCell className="font-medium">{s.pest_type}</TableCell>
                   <TableCell>{s.location}</TableCell>
@@ -131,15 +118,11 @@ const PestControl = () => {
         ) : (
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Inspected</TableHead>
+              <TableHead>Code</TableHead><TableHead>Location</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead>Last Inspected</TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {(filtered as any[]).map(s => (
-                <TableRow key={s.id}>
+                <TableRow key={s.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected({ ...s, _type: "station" })}>
                   <TableCell className="font-mono text-xs">{s.station_code}</TableCell>
                   <TableCell>{s.location}</TableCell>
                   <TableCell>{s.station_type}</TableCell>
@@ -152,6 +135,38 @@ const PestControl = () => {
           </Table>
         )}
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">{selected._type === "sighting" ? "Sighting Detail" : "Station Detail"}</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          {selected._type === "sighting" ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div><span className="text-muted-foreground">Pest Type:</span> <span className="ml-2 font-medium">{selected.pest_type}</span></div>
+              <div><span className="text-muted-foreground">Location:</span> <span className="ml-2">{selected.location}</span></div>
+              <div><span className="text-muted-foreground">Activity Level:</span> <span className="ml-2">{selected.activity_level}</span></div>
+              <div><span className="text-muted-foreground">Quantity Estimate:</span> <span className="ml-2">{selected.quantity_estimate ?? "—"}</span></div>
+              <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+              <div><span className="text-muted-foreground">Date:</span> <span className="ml-2">{format(new Date(selected.sighting_date), "PPP")}</span></div>
+              {selected.immediate_action && <div className="col-span-full"><span className="text-muted-foreground">Immediate Action:</span> <span className="ml-2">{selected.immediate_action}</span></div>}
+              {selected.corrective_action && <div className="col-span-full"><span className="text-muted-foreground">Corrective Action:</span> <span className="ml-2">{selected.corrective_action}</span> <span className="text-xs text-muted-foreground ml-2">({selected.corrective_action_status})</span></div>}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div><span className="text-muted-foreground">Code:</span> <span className="ml-2 font-mono">{selected.station_code}</span></div>
+              <div><span className="text-muted-foreground">Location:</span> <span className="ml-2">{selected.location}</span></div>
+              <div><span className="text-muted-foreground">Type:</span> <span className="ml-2">{selected.station_type}</span></div>
+              <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+              <div><span className="text-muted-foreground">Contractor:</span> <span className="ml-2">{selected.contractor ?? "—"}</span></div>
+              {selected.last_inspected_at && <div><span className="text-muted-foreground">Last Inspected:</span> <span className="ml-2">{format(new Date(selected.last_inspected_at), "PPP")}</span></div>}
+              {selected.next_inspection_due && <div><span className="text-muted-foreground">Next Due:</span> <span className="ml-2">{format(new Date(selected.next_inspection_due), "PPP")}</span></div>}
+              {selected.notes && <div className="col-span-full"><span className="text-muted-foreground">Notes:</span> <span className="ml-2">{selected.notes}</span></div>}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

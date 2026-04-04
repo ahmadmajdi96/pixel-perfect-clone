@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, AlertTriangle } from "lucide-react";
+import { Plus, AlertTriangle, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -17,6 +17,7 @@ const GlassControl = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [showBreakageDialog, setShowBreakageDialog] = useState(false);
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -110,8 +111,8 @@ const GlassControl = () => {
       </div>
 
       <div className="flex gap-2">
-        <Button variant={tab === "register" ? "default" : "outline"} size="sm" onClick={() => setTab("register")}>Register</Button>
-        <Button variant={tab === "breakages" ? "default" : "outline"} size="sm" onClick={() => setTab("breakages")}>Breakage Log</Button>
+        <Button variant={tab === "register" ? "default" : "outline"} size="sm" onClick={() => { setTab("register"); setSelected(null); }}>Register</Button>
+        <Button variant={tab === "breakages" ? "default" : "outline"} size="sm" onClick={() => { setTab("breakages"); setSelected(null); }}>Breakage Log</Button>
       </div>
 
       <Input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
@@ -124,7 +125,7 @@ const GlassControl = () => {
             </TableRow></TableHeader>
             <TableBody>
               {register.filter(r => r.item_code?.toLowerCase().includes(search.toLowerCase()) || r.description?.toLowerCase().includes(search.toLowerCase())).map(r => (
-                <TableRow key={r.id}>
+                <TableRow key={r.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected({ ...r, _type: "register" })}>
                   <TableCell className="font-mono text-xs">{r.item_code}</TableCell>
                   <TableCell className="font-medium">{r.description}</TableCell>
                   <TableCell>{r.location}</TableCell>
@@ -141,7 +142,7 @@ const GlassControl = () => {
             </TableRow></TableHeader>
             <TableBody>
               {breakages.map(b => (
-                <TableRow key={b.id}>
+                <TableRow key={b.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected({ ...b, _type: "breakage" })}>
                   <TableCell className="text-xs">{format(new Date(b.breakage_date), "PP")}</TableCell>
                   <TableCell>{b.location}</TableCell>
                   <TableCell>{b.quantity_broken}</TableCell>
@@ -154,6 +155,43 @@ const GlassControl = () => {
           </Table>
         )}
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">{selected._type === "register" ? "Item Detail" : "Breakage Detail"}</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          {selected._type === "register" ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div><span className="text-muted-foreground">Code:</span> <span className="ml-2 font-mono">{selected.item_code}</span></div>
+              <div><span className="text-muted-foreground">Description:</span> <span className="ml-2">{selected.description}</span></div>
+              <div><span className="text-muted-foreground">Location:</span> <span className="ml-2">{selected.location}</span></div>
+              <div><span className="text-muted-foreground">Type:</span> <span className="ml-2">{selected.item_type}</span></div>
+              <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+              <div><span className="text-muted-foreground">Purpose:</span> <span className="ml-2">{selected.purpose ?? "—"}</span></div>
+              <div><span className="text-muted-foreground">Quantity:</span> <span className="ml-2">{selected.quantity ?? 1}</span></div>
+              <div><span className="text-muted-foreground">Inspection Freq:</span> <span className="ml-2">{selected.inspection_frequency ?? "—"}</span></div>
+              {selected.last_inspected_at && <div><span className="text-muted-foreground">Last Inspected:</span> <span className="ml-2">{format(new Date(selected.last_inspected_at), "PPP")}</span></div>}
+              {selected.next_inspection_due && <div><span className="text-muted-foreground">Next Due:</span> <span className="ml-2">{format(new Date(selected.next_inspection_due), "PPP")}</span></div>}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div><span className="text-muted-foreground">Date:</span> <span className="ml-2">{format(new Date(selected.breakage_date), "PPP")}</span></div>
+              <div><span className="text-muted-foreground">Location:</span> <span className="ml-2">{selected.location}</span></div>
+              <div><span className="text-muted-foreground">Quantity:</span> <span className="ml-2">{selected.quantity_broken}</span></div>
+              <div><span className="text-muted-foreground">Product at Risk:</span> <span className="ml-2">{selected.product_at_risk ?? "None"}</span></div>
+              <div><span className="text-muted-foreground">Batch at Risk:</span> <span className="ml-2">{selected.batch_at_risk ?? "—"}</span></div>
+              <div><span className="text-muted-foreground">Fragments Recovered:</span> <span className={`ml-2 font-bold ${selected.all_fragments_recovered ? "text-status-closed" : "text-severity-critical"}`}>{selected.all_fragments_recovered ? "Yes" : "No"}</span></div>
+              <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+              <div><span className="text-muted-foreground">Disposition:</span> <span className="ml-2">{selected.product_disposition ?? "—"}</span></div>
+              {selected.immediate_action && <div className="col-span-full"><span className="text-muted-foreground">Immediate Action:</span> <span className="ml-2">{selected.immediate_action}</span></div>}
+              {selected.investigation_findings && <div className="col-span-full"><span className="text-muted-foreground">Investigation:</span> <span className="ml-2">{selected.investigation_findings}</span></div>}
+              {selected.corrective_action && <div className="col-span-full"><span className="text-muted-foreground">Corrective Action:</span> <span className="ml-2">{selected.corrective_action}</span></div>}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

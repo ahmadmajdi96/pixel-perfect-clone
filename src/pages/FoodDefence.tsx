@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, ShieldAlert, Lock } from "lucide-react";
+import { Plus, ShieldAlert, Lock, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -15,6 +15,7 @@ const FoodDefence = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -33,9 +34,7 @@ const FoodDefence = () => {
       threat_type: fd.get("threat_type") as string,
       category: fd.get("category") as string,
       description: fd.get("description") as string,
-      likelihood,
-      severity,
-      risk_score: likelihood * severity,
+      likelihood, severity, risk_score: likelihood * severity,
     });
     if (error) toast.error(error.message);
     else { toast.success("Threat added"); setShowDialog(false); fetchData(); }
@@ -83,20 +82,9 @@ const FoodDefence = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="data-card text-center">
-          <ShieldAlert className="h-5 w-5 mx-auto text-severity-critical" />
-          <p className="metric-label mt-1">TACCP Threats</p>
-          <p className="text-2xl font-bold mt-1">{taccpCount}</p>
-        </div>
-        <div className="data-card text-center">
-          <Lock className="h-5 w-5 mx-auto text-severity-medium" />
-          <p className="metric-label mt-1">VACCP Vulnerabilities</p>
-          <p className="text-2xl font-bold mt-1">{vaccpCount}</p>
-        </div>
-        <div className="data-card text-center">
-          <p className="metric-label">High Risk (≥15)</p>
-          <p className="text-2xl font-bold text-severity-critical mt-1">{highRisk}</p>
-        </div>
+        <div className="data-card text-center"><ShieldAlert className="h-5 w-5 mx-auto text-severity-critical" /><p className="metric-label mt-1">TACCP Threats</p><p className="text-2xl font-bold mt-1">{taccpCount}</p></div>
+        <div className="data-card text-center"><Lock className="h-5 w-5 mx-auto text-severity-medium" /><p className="metric-label mt-1">VACCP Vulnerabilities</p><p className="text-2xl font-bold mt-1">{vaccpCount}</p></div>
+        <div className="data-card text-center"><p className="metric-label">High Risk (≥15)</p><p className="text-2xl font-bold text-severity-critical mt-1">{highRisk}</p></div>
       </div>
 
       <div className="flex gap-3">
@@ -111,16 +99,11 @@ const FoodDefence = () => {
       <div className="data-card p-0 overflow-hidden">
         <Table>
           <TableHeader><TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>L×S</TableHead>
-            <TableHead>Risk Score</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Type</TableHead><TableHead>Category</TableHead><TableHead>Description</TableHead><TableHead>L×S</TableHead><TableHead>Risk Score</TableHead><TableHead>Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {filtered.map(t => (
-              <TableRow key={t.id}>
+              <TableRow key={t.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected(t)}>
                 <TableCell><span className={`status-badge ${t.threat_type === "taccp" ? "bg-severity-critical/15 text-severity-critical border border-severity-critical/30" : "bg-severity-medium/15 text-severity-medium border border-severity-medium/30"}`}>{t.threat_type.toUpperCase()}</span></TableCell>
                 <TableCell className="font-medium">{t.category}</TableCell>
                 <TableCell className="max-w-xs truncate">{t.description}</TableCell>
@@ -133,6 +116,31 @@ const FoodDefence = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">Threat Detail: {selected.category}</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div><span className="text-muted-foreground">Type:</span> <span className="ml-2 uppercase font-bold">{selected.threat_type}</span></div>
+            <div><span className="text-muted-foreground">Category:</span> <span className="ml-2">{selected.category}</span></div>
+            <div><span className="text-muted-foreground">Status:</span> <span className="ml-2">{selected.status}</span></div>
+            <div><span className="text-muted-foreground">Likelihood:</span> <span className="ml-2">{selected.likelihood}/5</span></div>
+            <div><span className="text-muted-foreground">Severity:</span> <span className="ml-2">{selected.severity}/5</span></div>
+            <div><span className="text-muted-foreground">Risk Score:</span> <span className={`ml-2 font-bold ${(selected.risk_score ?? 0) >= 15 ? "text-severity-critical" : "text-severity-medium"}`}>{selected.risk_score}</span></div>
+            <div><span className="text-muted-foreground">Residual Risk:</span> <span className="ml-2">{selected.residual_risk_score ?? "—"}</span></div>
+            {selected.threat_actor && <div><span className="text-muted-foreground">Threat Actor:</span> <span className="ml-2">{selected.threat_actor}</span></div>}
+            {selected.review_date && <div><span className="text-muted-foreground">Review Date:</span> <span className="ml-2">{format(new Date(selected.review_date), "PPP")}</span></div>}
+          </div>
+          <div className="mt-3 space-y-2 text-sm">
+            <div className="p-3 rounded bg-accent/30"><span className="text-muted-foreground font-medium">Description:</span> <span className="ml-2">{selected.description}</span></div>
+            {selected.attack_scenario && <div className="p-3 rounded bg-accent/30"><span className="text-muted-foreground font-medium">Attack Scenario:</span> <span className="ml-2">{selected.attack_scenario}</span></div>}
+            {selected.mitigation_measures && <div className="p-3 rounded bg-accent/30"><span className="text-muted-foreground font-medium">Mitigation:</span> <span className="ml-2">{selected.mitigation_measures}</span></div>}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

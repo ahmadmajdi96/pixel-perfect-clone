@@ -8,10 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { TableFilters } from "@/components/TableFilters";
+import { format } from "date-fns";
 
 const COMMON_ALLERGENS = [
   "Milk", "Eggs", "Fish", "Crustacean Shellfish", "Tree Nuts", "Peanuts",
@@ -38,6 +39,7 @@ const AllergenControl = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<any>(null);
   const [form, setForm] = useState({
     product_name: "", product_code: "",
     contains: [] as string[], may_contain: [] as string[], free_from: [] as string[],
@@ -122,7 +124,6 @@ const AllergenControl = () => {
                 <div><Label>Product Name *</Label><Input value={form.product_name} onChange={e => setForm(f => ({ ...f, product_name: e.target.value }))} required /></div>
                 <div><Label>Product Code</Label><Input value={form.product_code} onChange={e => setForm(f => ({ ...f, product_code: e.target.value }))} /></div>
               </div>
-
               {(["contains", "may_contain", "free_from"] as const).map(list => (
                 <div key={list}>
                   <Label className="capitalize">{list.replace("_", " ")}</Label>
@@ -140,7 +141,6 @@ const AllergenControl = () => {
                   </div>
                 </div>
               ))}
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Cross-Contact Risk Score (0-10)</Label>
@@ -173,26 +173,16 @@ const AllergenControl = () => {
       </div>
 
       <TableFilters
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search allergen profiles..."
-        filters={allergenFilters}
-        filterValues={filterValues}
-        onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))}
-        resultCount={filtered.length}
+        search={search} onSearchChange={setSearch} searchPlaceholder="Search allergen profiles..."
+        filters={allergenFilters} filterValues={filterValues}
+        onFilterChange={(k, v) => setFilterValues(prev => ({ ...prev, [k]: v }))} resultCount={filtered.length}
       />
 
       <div className="data-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Code</TableHead>
-              <TableHead>Contains</TableHead>
-              <TableHead>May Contain</TableHead>
-              <TableHead>Risk Score</TableHead>
-              <TableHead>Label Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Product</TableHead><TableHead>Code</TableHead><TableHead>Contains</TableHead><TableHead>May Contain</TableHead><TableHead>Risk Score</TableHead><TableHead>Label Status</TableHead><TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -201,7 +191,7 @@ const AllergenControl = () => {
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No allergen profiles found</TableCell></TableRow>
             ) : filtered.map(p => (
-              <TableRow key={p.id}>
+              <TableRow key={p.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelected(p)}>
                 <TableCell className="font-medium">{p.product_name}</TableCell>
                 <TableCell className="text-muted-foreground">{p.product_code || "—"}</TableCell>
                 <TableCell>
@@ -226,7 +216,7 @@ const AllergenControl = () => {
                 </TableCell>
                 <TableCell>
                   {p.label_status !== "verified" && (
-                    <Button size="sm" variant="outline" onClick={() => verifyLabel(p.id)}>
+                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); verifyLabel(p.id); }}>
                       <ShieldCheck className="mr-1 h-3 w-3" />Verify
                     </Button>
                   )}
@@ -236,6 +226,48 @@ const AllergenControl = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selected && (
+        <div className="data-card">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="metric-label">Allergen Profile: {selected.product_name}</h3>
+            <Button variant="ghost" size="icon" onClick={() => setSelected(null)}><X className="h-4 w-4" /></Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
+            <div><span className="text-muted-foreground">Product Code:</span> <span className="ml-2">{selected.product_code ?? "—"}</span></div>
+            <div><span className="text-muted-foreground">Label Status:</span> <span className="ml-2">{selected.label_status?.replace("_", " ")}</span></div>
+            <div><span className="text-muted-foreground">Risk Score:</span> <span className={`ml-2 font-bold ${riskColor(selected.cross_contact_risk_score ?? 0)}`}>{selected.cross_contact_risk_score ?? 0}/10</span></div>
+            {selected.label_last_verified_at && <div><span className="text-muted-foreground">Last Verified:</span> <span className="ml-2">{format(new Date(selected.label_last_verified_at), "PPP")}</span></div>}
+          </div>
+          <div className="space-y-3">
+            <div>
+              <span className="text-sm font-medium">Contains:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {(selected.contains || []).length > 0 ? (selected.contains || []).map((a: string) => (
+                  <span key={a} className="px-2 py-1 rounded text-xs bg-severity-critical/15 text-severity-critical">{a}</span>
+                )) : <span className="text-xs text-muted-foreground">None</span>}
+              </div>
+            </div>
+            <div>
+              <span className="text-sm font-medium">May Contain:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {(selected.may_contain || []).length > 0 ? (selected.may_contain || []).map((a: string) => (
+                  <span key={a} className="px-2 py-1 rounded text-xs bg-severity-medium/15 text-severity-medium">{a}</span>
+                )) : <span className="text-xs text-muted-foreground">None</span>}
+              </div>
+            </div>
+            <div>
+              <span className="text-sm font-medium">Free From:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {(selected.free_from || []).length > 0 ? (selected.free_from || []).map((a: string) => (
+                  <span key={a} className="px-2 py-1 rounded text-xs bg-[hsl(var(--status-closed)/0.15)] text-status-closed">{a}</span>
+                )) : <span className="text-xs text-muted-foreground">None</span>}
+              </div>
+            </div>
+          </div>
+          {selected.cross_contact_notes && <p className="text-sm text-muted-foreground mt-3 p-3 rounded bg-accent/30">{selected.cross_contact_notes}</p>}
+        </div>
+      )}
     </div>
   );
 };
