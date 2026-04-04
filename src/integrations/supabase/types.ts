@@ -911,6 +911,280 @@ export type Database = {
         }
         Relationships: []
       }
+      food_defence_threats: {
+        Row: {
+          attack_scenario: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          likelihood: number
+          mitigation_measures: string | null
+          residual_risk_score: number | null
+          review_date: string | null
+          risk_score: number | null
+          severity: number
+          status: string
+          threat_actor: string | null
+          threat_type: string
+          updated_at: string
+        }
+        Insert: {
+          attack_scenario?: string | null
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          likelihood?: number
+          mitigation_measures?: string | null
+          residual_risk_score?: number | null
+          review_date?: string | null
+          risk_score?: number | null
+          severity?: number
+          status?: string
+          threat_actor?: string | null
+          threat_type?: string
+          updated_at?: string
+        }
+        Update: {
+          attack_scenario?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          likelihood?: number
+          mitigation_measures?: string | null
+          residual_risk_score?: number | null
+          review_date?: string | null
+          risk_score?: number | null
+          severity?: number
+          status?: string
+          threat_actor?: string | null
+          threat_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      glass_breakages: {
+        Row: {
+          all_fragments_recovered: boolean | null
+          batch_at_risk: string | null
+          breakage_date: string
+          corrective_action: string | null
+          created_at: string
+          id: string
+          immediate_action: string | null
+          investigation_findings: string | null
+          item_id: string | null
+          location: string
+          product_at_risk: string | null
+          product_disposition: string | null
+          quantity_broken: number | null
+          reported_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          all_fragments_recovered?: boolean | null
+          batch_at_risk?: string | null
+          breakage_date?: string
+          corrective_action?: string | null
+          created_at?: string
+          id?: string
+          immediate_action?: string | null
+          investigation_findings?: string | null
+          item_id?: string | null
+          location: string
+          product_at_risk?: string | null
+          product_disposition?: string | null
+          quantity_broken?: number | null
+          reported_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          all_fragments_recovered?: boolean | null
+          batch_at_risk?: string | null
+          breakage_date?: string
+          corrective_action?: string | null
+          created_at?: string
+          id?: string
+          immediate_action?: string | null
+          investigation_findings?: string | null
+          item_id?: string | null
+          location?: string
+          product_at_risk?: string | null
+          product_disposition?: string | null
+          quantity_broken?: number | null
+          reported_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "glass_breakages_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "glass_register"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      glass_register: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          inspection_frequency: string | null
+          item_code: string
+          item_type: string
+          last_inspected_at: string | null
+          location: string
+          next_inspection_due: string | null
+          purpose: string | null
+          quantity: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          inspection_frequency?: string | null
+          item_code: string
+          item_type?: string
+          last_inspected_at?: string | null
+          location: string
+          next_inspection_due?: string | null
+          purpose?: string | null
+          quantity?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          inspection_frequency?: string | null
+          item_code?: string
+          item_type?: string
+          last_inspected_at?: string | null
+          location?: string
+          next_inspection_due?: string | null
+          purpose?: string | null
+          quantity?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gmp_checklist_items: {
+        Row: {
+          corrective_action: string | null
+          corrective_action_due: string | null
+          corrective_action_owner: string | null
+          created_at: string
+          id: string
+          inspection_id: string
+          is_critical: boolean | null
+          item_description: string
+          observation: string | null
+          result: string | null
+          section: string
+        }
+        Insert: {
+          corrective_action?: string | null
+          corrective_action_due?: string | null
+          corrective_action_owner?: string | null
+          created_at?: string
+          id?: string
+          inspection_id: string
+          is_critical?: boolean | null
+          item_description: string
+          observation?: string | null
+          result?: string | null
+          section: string
+        }
+        Update: {
+          corrective_action?: string | null
+          corrective_action_due?: string | null
+          corrective_action_owner?: string | null
+          created_at?: string
+          id?: string
+          inspection_id?: string
+          is_critical?: boolean | null
+          item_description?: string
+          observation?: string | null
+          result?: string | null
+          section?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmp_checklist_items_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "gmp_inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gmp_inspections: {
+        Row: {
+          area: string
+          completed_date: string | null
+          created_at: string
+          critical_fail_count: number | null
+          fail_count: number | null
+          id: string
+          inspection_type: string
+          inspector_id: string | null
+          inspector_name: string | null
+          notes: string | null
+          pass_count: number | null
+          scheduled_date: string | null
+          score_pct: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          completed_date?: string | null
+          created_at?: string
+          critical_fail_count?: number | null
+          fail_count?: number | null
+          id?: string
+          inspection_type?: string
+          inspector_id?: string | null
+          inspector_name?: string | null
+          notes?: string | null
+          pass_count?: number | null
+          scheduled_date?: string | null
+          score_pct?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          completed_date?: string | null
+          created_at?: string
+          critical_fail_count?: number | null
+          fail_count?: number | null
+          id?: string
+          inspection_type?: string
+          inspector_id?: string | null
+          inspector_name?: string | null
+          notes?: string | null
+          pass_count?: number | null
+          scheduled_date?: string | null
+          score_pct?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       haccp_ccps: {
         Row: {
           ccp_number: string
@@ -964,6 +1238,72 @@ export type Database = {
           process_step?: string
           responsible_operator?: string | null
           status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      improvement_projects: {
+        Row: {
+          baseline_value: number | null
+          category: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          current_value: number | null
+          description: string | null
+          id: string
+          methodology: string
+          owner: string | null
+          savings_actual: number | null
+          savings_estimated: number | null
+          start_date: string | null
+          status: string
+          target_completion: string | null
+          target_metric: string | null
+          target_value: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          baseline_value?: number | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_value?: number | null
+          description?: string | null
+          id?: string
+          methodology?: string
+          owner?: string | null
+          savings_actual?: number | null
+          savings_estimated?: number | null
+          start_date?: string | null
+          status?: string
+          target_completion?: string | null
+          target_metric?: string | null
+          target_value?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          baseline_value?: number | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_value?: number | null
+          description?: string | null
+          id?: string
+          methodology?: string
+          owner?: string | null
+          savings_actual?: number | null
+          savings_estimated?: number | null
+          start_date?: string | null
+          status?: string
+          target_completion?: string | null
+          target_metric?: string | null
+          target_value?: number | null
+          title?: string
           updated_at?: string
         }
         Relationships: []
@@ -1039,6 +1379,45 @@ export type Database = {
           },
         ]
       }
+      management_reviews: {
+        Row: {
+          attendees: string[] | null
+          created_at: string
+          created_by: string | null
+          data_pack_generated: boolean | null
+          id: string
+          minutes: string | null
+          review_date: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attendees?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          data_pack_generated?: boolean | null
+          id?: string
+          minutes?: string | null
+          review_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attendees?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          data_pack_generated?: boolean | null
+          id?: string
+          minutes?: string | null
+          review_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1077,6 +1456,215 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      pest_bait_stations: {
+        Row: {
+          contractor: string | null
+          created_at: string
+          id: string
+          last_inspected_at: string | null
+          location: string
+          next_inspection_due: string | null
+          notes: string | null
+          station_code: string
+          station_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contractor?: string | null
+          created_at?: string
+          id?: string
+          last_inspected_at?: string | null
+          location: string
+          next_inspection_due?: string | null
+          notes?: string | null
+          station_code: string
+          station_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contractor?: string | null
+          created_at?: string
+          id?: string
+          last_inspected_at?: string | null
+          location?: string
+          next_inspection_due?: string | null
+          notes?: string | null
+          station_code?: string
+          station_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pest_sightings: {
+        Row: {
+          activity_level: string
+          corrective_action: string | null
+          corrective_action_status: string | null
+          created_at: string
+          id: string
+          immediate_action: string | null
+          location: string
+          pest_type: string
+          quantity_estimate: string | null
+          reported_by: string | null
+          sighting_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activity_level?: string
+          corrective_action?: string | null
+          corrective_action_status?: string | null
+          created_at?: string
+          id?: string
+          immediate_action?: string | null
+          location: string
+          pest_type: string
+          quantity_estimate?: string | null
+          reported_by?: string | null
+          sighting_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          activity_level?: string
+          corrective_action?: string | null
+          corrective_action_status?: string | null
+          created_at?: string
+          id?: string
+          immediate_action?: string | null
+          location?: string
+          pest_type?: string
+          quantity_estimate?: string | null
+          reported_by?: string | null
+          sighting_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      product_specifications: {
+        Row: {
+          approved_by: string | null
+          compliance_status: string | null
+          created_at: string
+          customer_name: string | null
+          effective_date: string | null
+          id: string
+          last_checked_at: string | null
+          parameters: Json | null
+          product_code: string | null
+          product_name: string
+          review_date: string | null
+          spec_type: string
+          status: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          approved_by?: string | null
+          compliance_status?: string | null
+          created_at?: string
+          customer_name?: string | null
+          effective_date?: string | null
+          id?: string
+          last_checked_at?: string | null
+          parameters?: Json | null
+          product_code?: string | null
+          product_name: string
+          review_date?: string | null
+          spec_type?: string
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          approved_by?: string | null
+          compliance_status?: string | null
+          created_at?: string
+          customer_name?: string | null
+          effective_date?: string | null
+          id?: string
+          last_checked_at?: string | null
+          parameters?: Json | null
+          product_code?: string | null
+          product_name?: string
+          review_date?: string | null
+          spec_type?: string
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      product_tests: {
+        Row: {
+          batch_number: string | null
+          capa_id: string | null
+          created_at: string
+          id: string
+          lab_reference: string | null
+          last_tested_date: string | null
+          next_due_date: string | null
+          product_code: string | null
+          product_name: string
+          result: string | null
+          result_detail: Json | null
+          sampling_point: string | null
+          status: string
+          test_frequency: string | null
+          test_type: string
+          updated_at: string
+        }
+        Insert: {
+          batch_number?: string | null
+          capa_id?: string | null
+          created_at?: string
+          id?: string
+          lab_reference?: string | null
+          last_tested_date?: string | null
+          next_due_date?: string | null
+          product_code?: string | null
+          product_name: string
+          result?: string | null
+          result_detail?: Json | null
+          sampling_point?: string | null
+          status?: string
+          test_frequency?: string | null
+          test_type?: string
+          updated_at?: string
+        }
+        Update: {
+          batch_number?: string | null
+          capa_id?: string | null
+          created_at?: string
+          id?: string
+          lab_reference?: string | null
+          last_tested_date?: string | null
+          next_due_date?: string | null
+          product_code?: string | null
+          product_name?: string
+          result?: string | null
+          result_detail?: Json | null
+          sampling_point?: string | null
+          status?: string
+          test_frequency?: string | null
+          test_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_tests_capa_id_fkey"
+            columns: ["capa_id"]
+            isOneToOne: false
+            referencedRelation: "capas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1162,6 +1750,105 @@ export type Database = {
         }
         Relationships: []
       }
+      regulatory_rules: {
+        Row: {
+          created_at: string
+          description: string | null
+          effective_date: string | null
+          enforcement_date: string | null
+          id: string
+          impact_count: number | null
+          market: string
+          rule_reference: string
+          source: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          effective_date?: string | null
+          enforcement_date?: string | null
+          id?: string
+          impact_count?: number | null
+          market?: string
+          rule_reference: string
+          source?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          effective_date?: string | null
+          enforcement_date?: string | null
+          id?: string
+          impact_count?: number | null
+          market?: string
+          rule_reference?: string
+          source?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      review_action_items: {
+        Row: {
+          capa_id: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          owner: string | null
+          priority: string | null
+          review_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          capa_id?: string | null
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          owner?: string | null
+          priority?: string | null
+          review_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          capa_id?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          owner?: string | null
+          priority?: string | null
+          review_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_action_items_capa_id_fkey"
+            columns: ["capa_id"]
+            isOneToOne: false
+            referencedRelation: "capas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_action_items_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "management_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       risk_register: {
         Row: {
           category: string
@@ -1214,6 +1901,111 @@ export type Database = {
           review_date?: string | null
           risk_score?: number | null
           severity?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sku_compliance: {
+        Row: {
+          capa_id: string | null
+          compliance_status: string
+          created_at: string
+          deadline: string | null
+          id: string
+          market: string
+          notes: string | null
+          product_code: string | null
+          product_name: string
+          rule_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          capa_id?: string | null
+          compliance_status?: string
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          market?: string
+          notes?: string | null
+          product_code?: string | null
+          product_name: string
+          rule_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capa_id?: string | null
+          compliance_status?: string
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          market?: string
+          notes?: string | null
+          product_code?: string | null
+          product_name?: string
+          rule_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sku_compliance_capa_id_fkey"
+            columns: ["capa_id"]
+            isOneToOne: false
+            referencedRelation: "capas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sku_compliance_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "regulatory_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      specialty_certifications: {
+        Row: {
+          approved_ingredients: Json | null
+          audit_date: string | null
+          certificate_number: string | null
+          certification_type: string
+          certifying_body: string | null
+          created_at: string
+          effective_date: string | null
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          product_scope: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_ingredients?: Json | null
+          audit_date?: string | null
+          certificate_number?: string | null
+          certification_type: string
+          certifying_body?: string | null
+          created_at?: string
+          effective_date?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          product_scope?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_ingredients?: Json | null
+          audit_date?: string | null
+          certificate_number?: string | null
+          certification_type?: string
+          certifying_body?: string | null
+          created_at?: string
+          effective_date?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          product_scope?: string | null
           status?: string
           updated_at?: string
         }
@@ -1505,6 +2297,54 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      water_tests: {
+        Row: {
+          corrective_action: string | null
+          created_at: string
+          id: string
+          next_due_date: string | null
+          notes: string | null
+          parameter_values: Json | null
+          result: string
+          sampling_point: string
+          status: string
+          test_date: string
+          test_type: string
+          tested_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          corrective_action?: string | null
+          created_at?: string
+          id?: string
+          next_due_date?: string | null
+          notes?: string | null
+          parameter_values?: Json | null
+          result?: string
+          sampling_point: string
+          status?: string
+          test_date?: string
+          test_type?: string
+          tested_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          corrective_action?: string | null
+          created_at?: string
+          id?: string
+          next_due_date?: string | null
+          notes?: string | null
+          parameter_values?: Json | null
+          result?: string
+          sampling_point?: string
+          status?: string
+          test_date?: string
+          test_type?: string
+          tested_by?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
