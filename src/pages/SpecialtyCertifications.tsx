@@ -49,7 +49,7 @@ const SpecialtyCertifications = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Specialty & Religious Certifications</h1>
-          <p className="text-muted-foreground text-sm mt-1">Kosher, Halal, Organic, Non-GMO, Vegan certifications</p>
+          <p className="text-muted-foreground text-sm mt-1">Halal, Organic, Non-GMO, Vegan certifications</p>
         </div>
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" /> Add Certification</Button></DialogTrigger>
@@ -58,7 +58,7 @@ const SpecialtyCertifications = () => {
             <form onSubmit={handleCreate} className="space-y-3">
               <div><Label>Type</Label>
                 <select name="certification_type" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
-                  <option value="kosher">Kosher</option>
+                  <option value="halal">Halal</option>
                   <option value="halal">Halal</option>
                   <option value="organic">Organic</option>
                   <option value="non_gmo">Non-GMO</option>
