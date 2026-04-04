@@ -18,6 +18,18 @@ import {
   BarChart3,
   Settings,
   Microscope,
+  Scale,
+  CalendarCheck,
+  Bug,
+  Clipboard,
+  Lock,
+  CheckSquare,
+  Wine,
+  TestTube,
+  Droplets,
+  Award,
+  TrendingUp,
+  Activity,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -34,6 +46,7 @@ import {
 
 const coreNav = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Unified View", url: "/unified-dashboard", icon: Activity },
   { title: "CAPA", url: "/capa", icon: AlertTriangle },
   { title: "Complaints", url: "/complaints", icon: MessageSquareWarning },
   { title: "Deviations", url: "/deviations", icon: TriangleAlert },
@@ -43,10 +56,22 @@ const qualityNav = [
   { title: "HACCP", url: "/haccp", icon: ShieldAlert },
   { title: "Allergens", url: "/allergens", icon: Wheat },
   { title: "Inspections", url: "/incoming-inspection", icon: ClipboardCheck },
+  { title: "GMP Inspections", url: "/gmp-inspections", icon: CheckSquare },
   { title: "Suppliers", url: "/suppliers", icon: Truck },
   { title: "Audits", url: "/audits", icon: ClipboardList },
   { title: "Traceability", url: "/traceability", icon: GitBranch },
   { title: "EMP", url: "/environmental-monitoring", icon: Microscope },
+  { title: "Product Testing", url: "/product-testing", icon: TestTube },
+  { title: "Specifications", url: "/specifications", icon: Clipboard },
+];
+
+const safetyNav = [
+  { title: "Food Defence", url: "/food-defence", icon: Lock },
+  { title: "Glass Control", url: "/glass-control", icon: Wine },
+  { title: "Pest Control", url: "/pest-control", icon: Bug },
+  { title: "Water Quality", url: "/water-quality", icon: Droplets },
+  { title: "Certifications", url: "/certifications", icon: Award },
+  { title: "Regulatory", url: "/regulatory", icon: Scale },
 ];
 
 const systemNav = [
@@ -55,6 +80,8 @@ const systemNav = [
   { title: "Calibration", url: "/calibration", icon: Wrench },
   { title: "Training", url: "/training", icon: GraduationCap },
   { title: "Risk Register", url: "/risk", icon: PackageSearch },
+  { title: "Mgmt Review", url: "/management-review", icon: CalendarCheck },
+  { title: "Improvement", url: "/continuous-improvement", icon: TrendingUp },
   { title: "Reports", url: "/reports", icon: BarChart3 },
   { title: "Admin", url: "/admin", icon: Settings },
 ];
@@ -106,6 +133,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             {renderNavGroup("Core", coreNav)}
             {renderNavGroup("Quality", qualityNav)}
+            {renderNavGroup("Safety & Compliance", safetyNav)}
             {renderNavGroup("System", systemNav)}
           </SidebarGroupContent>
         </SidebarGroup>
