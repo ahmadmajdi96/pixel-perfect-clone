@@ -5,6 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: "https://ollzsxmepfhphcjpcham.supabase.co"
+        VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sbHpzeG1lcGZocGhjanBjaGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzExNDcsImV4cCI6MjA5MDY0NzE0N30.BP1HI-29RP46l5QfoYX5nYHfjZExlLseZZ7FIpaZSsU"
+        VITE_SUPABASE_PROJECT_ID: "ollzsxmepfhphcjpcham"
     ports:
       - "6683:6683"
     restart: unless-stopped
