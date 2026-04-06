@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  qms-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "6683:6683"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
